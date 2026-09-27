@@ -8,360 +8,438 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 body {
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-background-color: #f3f4f6;
-color: #1f2937;
-touch-action: manipulation;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f3f4f6;
+    color: #1f2937;
+    touch-action: manipulation;
 }
 .ios-card {
-background: #ffffff;
-border-radius: 1rem;
-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
-.no-scrollbar::-webkit-scrollbar {
-display: none;
-}
-.no-scrollbar {
--ms-overflow-style: none;
-scrollbar-width: none;
-}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen pb-24">
-<!-- Header / Top Bar -->
+
+<!-- ヘッダー -->
 <header class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md">
-<div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-<div class="flex items-center space-x-2">
-<i class="fa-solid fa-wallet text-xl"></i>
-<h1 class="font-bold text-lg tracking-tight">株主優待財布</h1>
-</div>
-<button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1">
-<i class="fa-solid fa-plus text-xs"></i>
-<span>追加</span>
-</button>
-</div>
+    <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-wallet text-xl"></i>
+            <h1 class="font-bold text-lg tracking-tight">株主優待財布</h1>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1">
+                <i class="fa-solid fa-calculator text-xs"></i>
+            </button>
+            <button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>追加</span>
+            </button>
+        </div>
+    </div>
 </header>
 
-<!-- Main Container -->
+<!-- メインコンテナ -->
 <main class="max-w-md mx-auto px-4 py-4 space-y-4">
-<!-- Summary / Balance Card -->
-<section class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg">
-<p class="text-xs uppercase tracking-wider text-indigo-200 font-medium">総優待価値・残高目安</p>
-<div class="flex items-baseline justify-between mt-1">
-<h2 id="total-balance" class="text-3xl font-extrabold tracking-tight">¥0</h2>
-<span id="active-count" class="text-xs bg-indigo-800/60 px-2.5 py-1 rounded-full text-indigo-100 font-medium">登録 0件</span>
-</div>
-<div class="mt-4 pt-3 border-t border-indigo-400/30 flex justify-between text-xs text-indigo-100">
-<div>期限間近: <span id="near-expiry-count" class="font-bold text-white">0件</span></div>
-<div>使用済み: <span id="used-count" class="font-bold text-white">0件</span></div>
-</div>
-</section>
+    <!-- 総残高サマリー -->
+    <section class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg">
+        <p class="text-xs uppercase tracking-wider text-indigo-200 font-medium">手元で使える優待総額</p>
+        <div class="flex items-baseline justify-between mt-1">
+            <h2 id="total-balance" class="text-3xl font-extrabold tracking-tight">¥0</h2>
+            <span id="active-count" class="text-xs bg-indigo-800/60 px-2.5 py-1 rounded-full text-indigo-100 font-medium">登録 0件</span>
+        </div>
+        <div class="mt-4 pt-3 border-t border-indigo-400/30 flex justify-between text-xs text-indigo-100">
+            <div>期限間近 (30日以内): <span id="near-expiry-count" class="font-bold text-white">0件</span></div>
+            <div>使い切り: <span id="used-count" class="font-bold text-white">0件</span></div>
+        </div>
+    </section>
 
-<!-- Search & Filters -->
-<section class="space-y-3">
-<div class="relative">
-<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-<i class="fa-solid fa-search"></i>
-</span>
-<input type="text" id="search-input" placeholder="企業名や優待内容で検索..." 
-class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-oninput="renderList()">
-</div>
-<!-- Category Filter Tabs -->
-<div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
-<button onclick="setCategory('all')" id="cat-all" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition">すべて</button>
-<button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">食事・外食</button>
-<button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">買い物・小売</button>
-<button onclick="setCategory('エンタメ')" id="cat-エンタメ" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">エンタメ・旅行</button>
-<button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">その他</button>
-</div>
-</section>
+    <!-- 検索＆カテゴリタブ -->
+    <section class="space-y-3">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <i class="fa-solid fa-search"></i>
+            </span>
+            <input type="text" id="search-input" placeholder="銘柄名、メモ、タグで検索..." 
+                class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                oninput="renderList()">
+        </div>
+        
+        <!-- カテゴリフィルター -->
+        <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
+            <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition">すべて</button>
+            <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">食事</button>
+            <button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">買い物</button>
+            <button onclick="setCategory('チケット')" id="cat-チケット" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">チケット</button>
+            <button onclick="setCategory('ギフト')" id="cat-ギフト" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">ギフト</button>
+            <button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">その他</button>
+        </div>
+    </section>
 
-<!-- Benefit Items List -->
-<section class="space-y-3">
-<div class="flex justify-between items-center px-1">
-<h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">優待券・残高一覧</h3>
-<div class="flex space-x-2">
-<select id="sort-select" onchange="renderList()" class="bg-transparent text-xs text-gray-600 font-medium focus:outline-none">
-<option value="expiry">期限順</option>
-<option value="value">金額順</option>
-<option value="newest">登録順</option>
-</select>
-</div>
-</div>
-<div id="benefit-list" class="space-y-2.5">
-<!-- JavaScript will populate items here -->
-</div>
-<!-- Empty State -->
-<div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
-<div class="text-gray-300 text-4xl mb-2">
-<i class="fa-solid fa-receipt"></i>
-</div>
-<p class="text-gray-600 font-medium text-sm">株主優待データがありません</p>
-<p class="text-gray-400 text-xs mt-1">上の「追加」ボタンから登録してください</p>
-</div>
-</section>
+    <!-- リスト表示部 -->
+    <section class="space-y-3">
+        <div class="flex justify-between items-center px-1">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">優待一覧</h3>
+            <select id="sort-select" onchange="renderList()" class="bg-transparent text-xs text-gray-600 font-medium focus:outline-none">
+                <option value="favoriteFirst">お気に入り優先</option>
+                <option value="expiryAsc">有効期限が近い順</option>
+                <option value="amountDesc">残高が多い順</option>
+                <option value="amountAsc">残高が少ない順</option>
+                <option value="nameAsc">50音順</option>
+            </select>
+        </div>
+        <div id="benefit-list" class="space-y-2.5">
+            <!-- JavaScriptで動的生成 -->
+        </div>
+        <!-- 空状態 -->
+        <div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
+            <div class="text-gray-300 text-4xl mb-2"><i class="fa-solid fa-receipt"></i></div>
+            <p class="text-gray-600 font-medium text-sm">該当する優待はありません</p>
+        </div>
+    </section>
 </main>
 
-<!-- Floating Action Button for Mobile convenience -->
-<div class="fixed bottom-6 right-6 z-30 md:hidden">
-<button onclick="openModal()" class="w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-indigo-700 active:scale-95 transition">
-<i class="fa-solid fa-plus"></i>
-</button>
-</div>
-
-<!-- Add/Edit Modal -->
+<!-- 新規追加・編集モーダル -->
 <div id="benefit-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-<div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-<div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-<h3 id="modal-title" class="font-bold text-lg text-gray-800">優待情報を追加</h3>
-<button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1">
-<i class="fa-solid fa-xmark text-lg"></i>
-</button>
-</div>
-<form id="benefit-form" onsubmit="saveBenefit(event)" class="space-y-4">
-<input type="hidden" id="item-id">
-<div>
-<label class="block text-xs font-semibold text-gray-600 uppercase mb-1">企業名 / 銘柄名 *</label>
-<input type="text" id="item-company" required placeholder="例: 吉野家ホールディングス" 
-class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-</div>
-<div class="grid grid-cols-2 gap-3">
-<div>
-<label class="block text-xs font-semibold text-gray-600 uppercase mb-1">カテゴリ</label>
-<select id="item-category" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-<option value="食事">食事・外食</option>
-<option value="買い物">買い物・小売</option>
-<option value="エンタメ">エンタメ・旅行</option>
-<option value="その他">その他</option>
-</select>
-</div>
-<div>
-<label class="block text-xs font-semibold text-gray-600 uppercase mb-1">金銭価値・残高 (円)</label>
-<input type="number" id="item-value" placeholder="例: 3000" 
-class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-</div>
-</div>
-<div>
-<label class="block text-xs font-semibold text-gray-600 uppercase mb-1">有効期限 *</label>
-<input type="date" id="item-expiry" required 
-class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-</div>
-<div>
-<label class="block text-xs font-semibold text-gray-600 uppercase mb-1">メモ・優待詳細</label>
-<textarea id="item-notes" rows="2" placeholder="例: 500円券×6枚、全国の店舗で利用可能" 
-class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-</div>
-<div class="flex items-center space-x-2 pt-1">
-<input type="checkbox" id="item-is-used" class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
-<label for="item-is-used" class="text-sm font-medium text-gray-700">使用済みとしてマークする</label>
-</div>
-<div class="pt-3 flex space-x-3">
-<button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm transition">キャンセル</button>
-<button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-md shadow-indigo-200">保存する</button>
-</div>
-</form>
-</div>
+    <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+            <h3 id="modal-title" class="font-bold text-lg text-gray-800">株主優待の新規登録</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form id="benefit-form" onsubmit="saveBenefit(event)" class="space-y-4">
+            <input type="hidden" id="item-id">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">銘柄名 *</label>
+                <input type="text" id="item-company" required placeholder="例: 吉野家" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">カスタムタグ</label>
+                <input type="text" id="item-tag" placeholder="例: よく行く店、駅前" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">数量・金額</label>
+                    <input type="number" id="item-amount" required placeholder="3000" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">単位</label>
+                    <select id="item-unit" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="円">円</option>
+                        <option value="枚">枚</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">有効期限 *</label>
+                <input type="date" id="item-expiry" required class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">カテゴリ</label>
+                    <select id="item-category" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="食事">食事</option>
+                        <option value="買い物">買い物</option>
+                        <option value="チケット">チケット</option>
+                        <option value="ギフト">ギフト</option>
+                        <option value="その他">その他</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">権利確定月</label>
+                    <input type="text" id="item-rights" placeholder="例: 3月/9月" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">関連URL</label>
+                <input type="url" id="item-url" placeholder="https://..." class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">メモ</label>
+                <textarea id="item-memo" rows="2" placeholder="利用条件など" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            </div>
+            <div class="pt-3 flex space-x-3">
+                <button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm transition">キャンセル</button>
+                <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-md">保存する</button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- Application Script Logic -->
+<!-- お会計シミュレーターモーダル -->
+<div id="calc-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+            <h3 class="font-bold text-lg text-gray-800">お会計シミュレーター</h3>
+            <button onclick="closeCalcModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">合計金額 (円)</label>
+                <input type="number" id="calc-bill" placeholder="3500" oninput="updateCalc()" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">優待充当額</label>
+                <select id="calc-use" onchange="updateCalc()" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="500">500円</option>
+                    <option value="1000" selected>1,000円</option>
+                    <option value="1500">1,500円</option>
+                    <option value="2000">2,000円</option>
+                    <option value="3000">3,000円</option>
+                    <option value="5000">5,000円</option>
+                </select>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-xl space-y-2 text-sm">
+                <div class="flex justify-between"><span>合計お会計:</span> <span id="res-bill" class="font-bold">¥0</span></div>
+                <div class="flex justify-between text-orange-600"><span>優待利用:</span> <span id="res-use">- ¥1000</span></div>
+                <div class="flex justify-between pt-2 border-t border-gray-200 text-base font-bold text-green-600"><span>自腹お支払い額:</span> <span id="res-pay">¥0</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-let benefits = JSON.parse(localStorage.getItem('tutsi_wallet_benefits')) || [
-{ id: '1', company: '吉野家ホールディングス', category: '食事', value: 3000, expiry: '2026-11-30', notes: '500円券 × 6枚', isUsed: false },
-{ id: '2', company: 'イオン', category: '買い物', value: 5000, expiry: '2026-06-30', notes: 'オーナーズカード返金引換証', isUsed: false },
-{ id: '3', company: 'マクドナルド', category: '食事', value: 2500, expiry: '2026-04-15', notes: 'バーガー類引換券 5枚', isUsed: false }
+// サンプルデータ＆ローカルストレージ管理
+let items = JSON.parse(localStorage.getItem('yutai_items_v1')) || [
+    {
+        id: '1',
+        companyName: '吉野家HD',
+        categoryIcon: 'fork.knife',
+        categoryName: '食事',
+        remainingAmount: 3000,
+        initialAmount: 3000,
+        unit: '円',
+        expiryDate: new Date(Date.now() + 12*86400000).toISOString().split('T')[0],
+        url: 'https://www.yoshinoya.com/',
+        memo: 'テイクアウトでも利用可能。',
+        isCompleted: false,
+        rightsMonth: '2月/8月',
+        isFavorite: true,
+        customTag: 'よく行く店'
+    },
+    {
+        id: '2',
+        companyName: 'すかいらーく',
+        categoryIcon: 'cart',
+        categoryName: '買い物',
+        remainingAmount: 5000,
+        initialAmount: 5000,
+        unit: '円',
+        expiryDate: new Date(Date.now() + 25*86400000).toISOString().split('T')[0],
+        url: 'https://www.skylark.co.jp/',
+        memo: '500円単位で利用可能。',
+        isCompleted: false,
+        rightsMonth: '6月/12月',
+        isFavorite: false,
+        customTag: 'ファミレス'
+    }
 ];
+
 let currentCategory = 'all';
 
 window.addEventListener('DOMContentLoaded', () => {
-renderList();
+    renderList();
 });
 
-function saveData() {
-localStorage.setItem('tutsi_wallet_benefits', JSON.stringify(benefits));
-renderList();
+function saveAndRender() {
+    localStorage.setItem('yutai_items_v1', JSON.stringify(items));
+    renderList();
 }
 
 function setCategory(cat) {
-currentCategory = cat;
-document.querySelectorAll('.cat-btn').forEach(btn => {
-btn.classList.remove('bg-indigo-600', 'text-white');
-btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200');
-});
-const activeBtn = document.getElementById('cat-' + cat);
-if(activeBtn) {
-activeBtn.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200');
-activeBtn.classList.add('bg-indigo-600', 'text-white');
-}
-renderList();
-}
-
-function openModal(id = null) {
-const modal = document.getElementById('benefit-modal');
-const form = document.getElementById('benefit-form');
-form.reset();
-document.getElementById('item-id').value = '';
-if (id) {
-document.getElementById('modal-title').textContent = '優待情報を編集';
-const item = benefits.find(b => b.id === id);
-if (item) {
-document.getElementById('item-id').value = item.id;
-document.getElementById('item-company').value = item.company;
-document.getElementById('item-category').value = item.category;
-document.getElementById('item-value').value = item.value || '';
-document.getElementById('item-expiry').value = item.expiry;
-document.getElementById('item-notes').value = item.notes || '';
-document.getElementById('item-is-used').checked = item.isUsed || false;
-}
-} else {
-document.getElementById('modal-title').textContent = '優待情報を追加';
-const defaultDate = new Date();
-defaultDate.setMonth(defaultDate.getMonth() + 6);
-document.getElementById('item-expiry').value = defaultDate.toISOString().split('T')[0];
-}
-modal.classList.remove('hidden');
+    currentCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+    });
+    const activeBtn = document.getElementById('cat-' + cat);
+    if (activeBtn) {
+        activeBtn.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+        activeBtn.classList.add('bg-indigo-600', 'text-white');
+    }
+    renderList();
 }
 
-function closeModal() {
-document.getElementById('benefit-modal').classList.add('hidden');
-}
-
-function saveBenefit(e) {
-e.preventDefault();
-const id = document.getElementById('item-id').value;
-const company = document.getElementById('item-company').value;
-const category = document.getElementById('item-category').value;
-const value = Number(document.getElementById('item-value').value) || 0;
-const expiry = document.getElementById('item-expiry').value;
-const notes = document.getElementById('item-notes').value;
-const isUsed = document.getElementById('item-is-used').checked;
-if (id) {
-benefits = benefits.map(b => b.id === id ? { ...b, company, category, value, expiry, notes, isUsed } : b);
-} else {
-const newItem = {
-id: Date.now().toString(),
-company,
-category,
-value,
-expiry,
-notes,
-isUsed
-};
-benefits.push(newItem);
-}
-saveData();
-closeModal();
-}
-
-function deleteBenefit(id) {
-if (confirm('この優待情報を削除しますか？')) {
-benefits = benefits.filter(b => b.id !== id);
-saveData();
-}
-}
-
-function toggleUsed(id) {
-benefits = benefits.map(b => b.id === id ? { ...b, isUsed: !b.isUsed } : b);
-saveData();
+function getDaysRemaining(expiryStr) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const expiry = new Date(expiryStr);
+    expiry.setHours(0,0,0,0);
+    const diffTime = expiry - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
 function renderList() {
-const searchQuery = document.getElementById('search-input').value.toLowerCase();
-const sortBy = document.getElementById('sort-select').value;
-const listContainer = document.getElementById('benefit-list');
-const emptyState = document.getElementById('empty-state');
+    const searchQuery = document.getElementById('search-input').value.toLowerCase();
+    const sortBy = document.getElementById('sort-select').value;
+    const listContainer = document.getElementById('benefit-list');
+    const emptyState = document.getElementById('empty-state');
 
-let filtered = benefits.filter(item => {
-const matchesCat = currentCategory === 'all' || item.category === currentCategory;
-const matchesSearch = item.company.toLowerCase().includes(searchQuery) || (item.notes && item.notes.toLowerCase().includes(searchQuery));
-return matchesCat && matchesSearch;
-});
+    let filtered = items.filter(item => {
+        if (item.isCompleted) return false;
+        if (currentCategory !== 'all' && currentCategory !== 'すべて' && item.categoryName !== currentCategory) return false;
+        if (searchQuery) {
+            return item.companyName.toLowerCase().includes(searchQuery) ||
+                   item.memo.toLowerCase().includes(searchQuery) ||
+                   item.customTag.toLowerCase().includes(searchQuery);
+        }
+        return true;
+    });
 
-filtered.sort((a, b) => {
-if (sortBy === 'expiry') {
-return new Date(a.expiry) - new Date(b.expiry);
-} else if (sortBy === 'value') {
-return (b.value || 0) - (a.value || 0);
-} else {
-return b.id - a.id;
+    filtered.sort((a, b) => {
+        if (sortBy === 'favoriteFirst') {
+            if (a.isFavorite !== b.isFavorite) return b.isFavorite - a.isFavorite;
+            return new Date(a.expiryDate) - new Date(b.expiryDate);
+        } else if (sortBy === 'expiryAsc') {
+            return new Date(a.expiryDate) - new Date(b.expiryDate);
+        } else if (sortBy === 'amountDesc') {
+            return b.remainingAmount - a.remainingAmount;
+        } else if (sortBy === 'amountAsc') {
+            return a.remainingAmount - b.remainingAmount;
+        } else if (sortBy === 'nameAsc') {
+            return a.companyName.localeCompare(b.companyName, 'ja');
+        }
+    });
+
+    // サマリー計算
+    const activeYen = items.filter(i => !i.isCompleted && i.unit === '円').reduce((acc, cur) => acc + cur.remainingActivity || acc + cur.remainingAmount, 0);
+    document.getElementById('total-balance').textContent = '¥' + activeYen.toLocaleString();
+    document.getElementById('active-count').textContent = '登録 ' + items.filter(i => !i.isCompleted).length + '件';
+    
+    const nearExpiry = items.filter(i => !i.isCompleted && getDaysRemaining(i.expiryDate) >= 0 && getDaysRemaining(i.expiryDate) <= 30).length;
+    document.getElementById('near-expiry-count').textContent = nearExpiry + '件';
+    document.getElementById('used-count').textContent = items.filter(i => i.isCompleted).length + '件';
+
+    listContainer.innerHTML = '';
+    if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+    } else {
+        emptyState.classList.add('hidden');
+    }
+
+    filtered.forEach(item => {
+        const days = getDaysRemaining(item.expiryDate);
+        let badgeClass = 'bg-blue-600 text-white';
+        let badgeText = 'あと' + days + '日';
+        if (days < 0) { badgeClass = 'bg-black text-white'; badgeText = '期限切れ'; }
+        else if (days === 0) { badgeClass = 'bg-red-600 text-white'; badgeText = '本日まで'; }
+        else if (days <= 14) { badgeClass = 'bg-red-500 text-white'; badgeText = 'あと' + days + '日'; }
+        else if (days <= 30) { badgeClass = 'bg-orange-500 text-white'; badgeText = 'あと' + days + '日'; }
+
+        const html = `
+            <div class="ios-card p-4 border border-gray-100 flex items-center justify-between space-x-2">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <button onclick="toggleFavorite('${item.id}')" class="text-lg focus:outline-none">
+                        <i class="fa-solid fa-star ${item.isFavorite ? 'text-yellow-400' : 'text-gray-300'}"></i>
+                    </button>
+                    <div class="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+                        <i class="fa-solid fa-${item.categoryIcon === 'fork.knife' ? 'utensils' : (item.categoryIcon === 'cart' ? 'cart-shopping' : 'ticket')}"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="flex items-center space-x-2">
+                            <h4 class="font-bold text-gray-900 text-sm truncate">${escapeHtml(item.companyName)}</h4>
+                            ${item.customTag ? `<span class="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">${escapeHtml(item.customTag)}</span>` : ''}
+                        </div>
+                        <div class="flex items-center space-x-2 mt-0.5">
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${badgeClass}">${badgeText}</span>
+                            <span class="text-[10px] text-gray-400">(${item.expiryDate})</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right shrink-0">
+                    <div class="text-sm font-extrabold text-gray-900">${item.remainingAmount}${item.unit}</div>
+                    <div class="flex items-center space-x-1 mt-1">
+                        <a href="http://maps.apple.com/?q=${encodeURIComponent(item.companyName)}" target="_blank" class="p-1 bg-orange-50 text-orange-600 rounded text-xs"><i class="fa-solid fa-map-pin"></i></a>
+                        ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" class="p-1 bg-blue-50 text-blue-600 rounded text-xs"><i class="fa-solid fa-safari"></i></a>` : ''}
+                        <button onclick="useAmount('${item.id}')" class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[10px] font-bold">-${item.unit === '円' ? '500円' : '1枚'}</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        listContainer.insertAdjacentHTML('beforeend', html);
+    });
 }
-});
 
-const activeBenefits = benefits.filter(b => !b.isUsed);
-const totalVal = activeBenefits.reduce((acc, cur) => acc + (Number(cur.value) || 0), 0);
-document.getElementById('total-balance').textContent = '¥' + totalVal.toLocaleString();
-document.getElementById('active-count').textContent = '登録 ' + benefits.length + '件';
-document.getElementById('used-count').textContent = benefits.filter(b => b.isUsed).length + '件';
-
-const today = new Date();
-const thirtyDaysLater = new Date();
-thirtyDaysLater.setDate(today.getDate() + 30);
-const nearExpiryCount = activeBenefits.filter(b => {
-const expDate = new Date(b.expiry);
-return expDate >= today && expDate <= thirtyDaysLater;
-}).length;
-document.getElementById('near-expiry-count').textContent = nearExpiryCount + '件';
-
-listContainer.innerHTML = '';
-if (filtered.length === 0) {
-emptyState.classList.remove('hidden');
-return;
-} else {
-emptyState.classList.add('hidden');
+function toggleFavorite(id) {
+    items = items.map(i => i.id === id ? { ...i, isFavorite: !i.isFavorite } : i);
+    saveAndRender();
 }
 
-filtered.forEach(item => {
-const expDate = new Date(item.expiry);
-const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-let badgeClass = 'bg-gray-100 text-gray-600';
-let badgeText = '期限: ' + item.expiry;
-
-if (item.isUsed) {
-badgeClass = 'bg-gray-200 text-gray-500 line-through';
-badgeText = '使用済み';
-} else if (diffDays < 0) {
-badgeClass = 'bg-red-100 text-red-700 font-bold';
-badgeText = '期限切れ';
-} else if (diffDays <= 30) {
-badgeClass = 'bg-amber-100 text-amber-700 font-bold';
-badgeText = 'あと' + diffDays + '日 (' + item.expiry + ')';
+function useAmount(id) {
+    items = items.map(i => {
+        if (i.id === id) {
+            const step = i.unit === '円' ? 500 : 1;
+            const newVal = Math.max(0, i.remainingAmount - step);
+            return { ...i, remainingAmount: newVal, isCompleted: newVal === 0 };
+        }
+        return i;
+    });
+    saveAndRender();
 }
 
-const cardOpacity = item.isUsed ? 'opacity-60 bg-gray-50' : 'bg-white';
-const html = `
-<div class="ios-card p-4 transition ${cardOpacity} border border-gray-100 flex flex-col space-y-2">
-<div class="flex justify-between items-start">
-<div class="space-y-0.5">
-<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600">${item.category}</span>
-<h4 class="font-bold text-gray-900 text-base mt-1">${escapeHtml(item.company)}</h4>
-</div>
-<div class="text-right">
-<span class="text-lg font-extrabold text-indigo-600">¥${(item.value || 0).toLocaleString()}</span>
-</div>
-</div>
-${item.notes ? `<p class="text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">${escapeHtml(item.notes)}</p>` : ''}
-<div class="flex justify-between items-center pt-2 border-t border-gray-100 text-xs">
-<span class="px-2 py-1 rounded-md ${badgeClass}">${badgeText}</span>
-<div class="flex space-x-2">
-<button onclick="toggleUsed('${item.id}')" class="text-gray-500 hover:text-indigo-600 px-2 py-1 font-medium transition">
-<i class="fa-solid ${item.isUsed ? 'fa-rotate-left' : 'fa-check'}"></i> ${item.isUsed ? '未使用に戻す' : '使用済みに'}
-</button>
-<button onclick="openModal('${item.id}')" class="text-gray-400 hover:text-indigo-600 p-1">
-<i class="fa-solid fa-pen"></i>
-</button>
-<button onclick="deleteBenefit('${item.id}')" class="text-gray-400 hover:text-red-500 p-1">
-<i class="fa-solid fa-trash"></i>
-</button>
-</div>
-</div>
-</div>
-`;
-listContainer.insertAdjacentHTML('beforeend', html);
-});
+function openModal() {
+    document.getElementById('benefit-form').reset();
+    document.getElementById('item-id').value = '';
+    document.getElementById('modal-title').textContent = '株主優待の新規登録';
+    const defaultDate = new Date();
+    defaultDate.setMonth(defaultDate.getMonth() + 6);
+    document.getElementById('item-expiry').value = defaultDate.toISOString().split('T')[0];
+    document.getElementById('benefit-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('benefit-modal').classList.add('hidden');
+}
+
+function saveBenefit(e) {
+    e.preventDefault();
+    const id = document.getElementById('item-id').value || Date.now().toString();
+    const companyName = document.getElementById('item-company').value;
+    const customTag = document.getElementById('item-tag').value;
+    const amount = parseInt(document.getElementById('item-amount').value) || 0;
+    const unit = document.getElementById('item-unit').value;
+    const expiryDate = document.getElementById('item-expiry').value;
+    const categoryName = document.getElementById('item-category').value;
+    const rightsMonth = document.getElementById('item-rights').value;
+    const url = document.getElementById('item-url').value;
+    const memo = document.getElementById('item-memo').value;
+
+    const iconMap = { '食事': 'fork.knife', '買い物': 'cart', 'チケット': 'ticket', 'ギフト': 'gift', 'その他': 'folder' };
+    
+    const existingIdx = items.findIndex(i => i.id === id);
+    const newItem = {
+        id, companyName, categoryIcon: iconMap[categoryName] || 'gift', categoryName,
+        remainingAmount: amount, initialAmount: amount, unit, expiryDate, url, memo,
+        isCompleted: false, rightsMonth, isFavorite: false, customTag
+    };
+
+    if (existingIdx >= 0) {
+        items[existingIdx] = newItem;
+    } else {
+        items.push(newItem);
+    }
+
+    saveAndRender();
+    closeModal();
+}
+
+function openCalcModal() { document.getElementById('calc-modal').classList.remove('hidden'); updateCalc(); }
+function closeCalcModal() { document.getElementById('calc-modal').classList.add('hidden'); }
+function updateCalc() {
+    const bill = parseInt(document.getElementById('calc-bill').value) || 0;
+    const use = parseInt(document.getElementById('calc-use').value) || 0;
+    const pay = Math.max(0, bill - use);
+    document.getElementById('res-bill').textContent = '¥' + bill.toLocaleString();
+    document.getElementById('res-use').textContent = '- ¥' + use.toLocaleString();
+    document.getElementById('res-pay').textContent = '¥' + pay.toLocaleString();
 }
 
 function escapeHtml(str) {
-return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 </script>
 </body>
