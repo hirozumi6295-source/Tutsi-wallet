@@ -20,7 +20,6 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-/* iOS等でのフォームフォーカス時の自動ズームを防ぐため文字サイズを16px以上に保つ */
 input, select, textarea {
     font-size: 16px !important;
 }
@@ -59,7 +58,7 @@ input, select, textarea {
 <main class="max-w-md mx-auto px-4 py-4 space-y-4">
     <!-- 総残高サマリー -->
     <section class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg">
-        <p class="text-xs uppercase tracking-wider text-indigo-200 font-medium">手元で使える優待総額</p>
+        <p id="summary-title" class="text-xs uppercase tracking-wider text-indigo-200 font-medium">手元で使える優待総額</p>
         <div class="flex items-baseline justify-between mt-1">
             <h2 id="total-balance" class="text-3xl font-extrabold tracking-tight">¥0</h2>
             <span id="active-count" class="text-xs bg-indigo-800/60 px-2.5 py-1 rounded-full text-indigo-100 font-medium">登録 0件</span>
@@ -258,7 +257,6 @@ input, select, textarea {
 </div>
 
 <script>
-// ストレージキーを定数化
 const STORAGE_KEY = 'yutai_items_v4';
 
 let items = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
@@ -357,12 +355,19 @@ function renderList() {
         }
     });
 
-    // サマリー計算
-    const activeYen = items.filter(i => !i.isCompleted && i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
-    const activeTickets = items.filter(i => !i.isCompleted && i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+    // サマリー計算（選択中のカテゴリに連動）
+    let targetItemsForSummary = items.filter(i => !i.isCompleted);
+    if (currentCategory !== 'すべて') {
+        targetItemsForSummary = targetItemsForSummary.filter(i => i.categoryName === currentCategory);
+    }
     
-    document.getElementById('total-balance').textContent = activeYen > 0 ? '¥' + activeYen.toLocaleString() + (activeTickets > 0 ? ` / ${activeTickets}枚` : '') : `${activeTickets}枚`;
-    document.getElementById('active-count').textContent = '登録 ' + items.filter(i => !i.isCompleted).length + '件';
+    const activeYen = targetItemsForSummary.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+    const activeTickets = targetItemsForSummary.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+    
+    // サマリーのタイトルと金額・件数の更新
+    document.getElementById('summary-title').textContent = currentCategory === 'すべて' ? '手元で使える優実総額' : `手元で使える${currentCategory}優待総額`;
+    document.getElementById('total-balance').textContent = activeYen > 0 ? '¥' + activeYen.toLocaleString() + (activeTickets > 0 ? ` / ${activeTickets}枚` : '') : (activeTickets > 0 ? `${activeTickets}枚` : '¥0');
+    document.getElementById('active-count').textContent = '登録 ' + targetItemsForSummary.length + '件';
     
     const nearExpiry = items.filter(i => !i.isCompleted && getDaysRemaining(i.expiryDate) >= 0 && getDaysRemaining(i.expiryDate) <= 30).length;
     document.getElementById('near-expiry-count').textContent = nearExpiry + '件';
