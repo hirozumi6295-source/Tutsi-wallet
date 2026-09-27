@@ -475,11 +475,11 @@ function openHistoryModal() {
                 <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between text-sm space-x-2">
                     <div class="min-w-0 flex-1">
                         <h4 class="font-bold text-gray-800 text-sm truncate">${escapeHtml(item.companyName)}</h4>
-                        <div class="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap truncate">初期総額: ${item.initialAmount || item.remainingAmount}${item.unit} / 期限: ${item.expiryDate}</div>
+                        <div class="text-[10px] text-gray-500 mt-0.5 whitespace-nowrap truncate">初期: ${item.initialAmount || item.remainingAmount}${item.unit} / 期限: ${item.expiryDate}</div>
                     </div>
-                    <div class="flex items-center space-x-2 shrink-0">
+                    <div class="flex items-center space-x-1.5 shrink-0">
                         <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">使い切り</span>
-                        <button onclick="restoreItem('${item.id}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs px-2.5 py-1.5 rounded-lg shadow-sm whitespace-nowrap" title="未完了に戻す">戻す</button>
+                        <button onclick="restoreItem('${item.id}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap" title="未完了に戻す">戻す</button>
                     </div>
                 </div>
             `;
