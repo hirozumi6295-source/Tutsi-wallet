@@ -58,7 +58,7 @@ input, select, textarea {
 <main class="max-w-md mx-auto px-4 py-4 space-y-4">
     <!-- 総残高サマリー -->
     <section class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg">
-        <p id="summary-title" class="text-xs uppercase tracking-wider text-indigo-200 font-medium">手元で使える優待総額</p>
+        <p id="summary-title" class="text-xs uppercase tracking-wider text-indigo-200 font-medium">優待総額</p>
         <div class="flex items-baseline justify-between mt-1">
             <h2 id="total-balance" class="text-3xl font-extrabold tracking-tight">¥0</h2>
             <span id="active-count" class="text-xs bg-indigo-800/60 px-2.5 py-1 rounded-full text-indigo-100 font-medium">登録 0件</span>
@@ -355,7 +355,7 @@ function renderList() {
         }
     });
 
-    // 選択中のカテゴリに完全に連動したサマリー集計
+    // 選択中のカテゴリに連動したサマリー集計
     const activeItems = items.filter(i => !i.isCompleted);
     const summaryItems = currentCategory === 'すべて' 
         ? activeItems 
@@ -364,8 +364,8 @@ function renderList() {
     const activeYen = summaryItems.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
     const activeTickets = summaryItems.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
     
-    // サマリーのタイトルと金額・件数の更新
-    document.getElementById('summary-title').textContent = currentCategory === 'すべて' ? '手元で使える優待総額' : `手元で使える${currentCategory}優待総額`;
+    // サマリーのタイトルと金額・件数の更新（「手元で使える」を削除）
+    document.getElementById('summary-title').textContent = currentCategory === 'すべて' ? '優実総額' : `${currentCategory}優待総額`;
     document.getElementById('total-balance').textContent = activeYen > 0 ? '¥' + activeYen.toLocaleString() + (activeTickets > 0 ? ` / ${activeTickets}枚` : '') : (activeTickets > 0 ? `${activeTickets}枚` : '¥0');
     document.getElementById('active-count').textContent = '登録 ' + summaryItems.length + '件';
     
@@ -625,4 +625,3 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
-
