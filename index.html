@@ -32,6 +32,9 @@ body {
             <h1 class="font-bold text-lg tracking-tight">株主優待財布</h1>
         </div>
         <div class="flex items-center space-x-2">
+            <button onclick="openSettingsModal()" class="bg-white/25 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1" title="データ管理・設定">
+                <i class="fa-solid fa-gear text-xs"></i>
+            </button>
             <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1" title="お会計シミュレーター">
                 <i class="fa-solid fa-calculator text-xs"></i>
             </button>
@@ -54,7 +57,7 @@ body {
         </div>
         <div class="mt-4 pt-3 border-t border-indigo-400/30 flex justify-between text-xs text-indigo-100">
             <div>期限間近 (30日以内): <span id="near-expiry-count" class="font-bold text-white">0件</span></div>
-            <div>使い切り: <span id="used-count" class="font-bold text-white">0件</span></div>
+            <div>使い切り履歴: <button onclick="openHistoryModal()" class="underline font-bold text-white hover:text-indigo-200"><span id="used-count">0件</span></button></div>
         </div>
     </section>
 
@@ -93,7 +96,7 @@ body {
             </select>
         </div>
         <div id="benefit-list" class="space-y-2.5">
-            <!-- JavaScriptで動的生成 -->
+            <!-- JavaScriptで動적生成 -->
         </div>
         <!-- 空状態 -->
         <div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
@@ -150,7 +153,7 @@ body {
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">関連URL</label>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">関連URL (任意)</label>
                 <input type="url" id="item-url" placeholder="https://www.yoshinoya.com/" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
@@ -162,6 +165,54 @@ body {
                 <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-md">保存する</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- 使い切り履歴モーダル -->
+<div id="history-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
+            <h3 class="font-bold text-lg text-gray-800">使い切り履歴</h3>
+            <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div id="history-list" class="space-y-2.5 overflow-y-auto flex-1 pr-1">
+            <!-- 履歴アイテム -->
+        </div>
+        <div id="history-empty" class="hidden text-center py-10 text-gray-400 text-sm">
+            使い切った履歴はまだありません
+        </div>
+        <div class="pt-4 border-t border-gray-100 mt-3 shrink-0 flex justify-end">
+            <button onclick="closeHistoryModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- データ管理・設定モーダル (バックアップ・復元) -->
+<div id="settings-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5">
+        <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+            <h3 class="font-bold text-lg text-gray-800">データバックアップ・復元</h3>
+            <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="space-y-4 text-sm text-gray-600">
+            <div class="bg-indigo-50 p-3.5 rounded-xl text-indigo-900 space-y-1">
+                <p class="font-bold text-xs"><i class="fa-solid fa-circle-info mr-1"></i> バックアップについて</p>
+                <p class="text-xs leading-relaxed">データをファイルに書き出して保存できます。スマホの機種変更時やブラウザのデータ削除対策としてご利用ください。</p>
+            </div>
+            <div>
+                <button onclick="exportData()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-sm">
+                    <i class="fa-solid fa-download text-xs"></i>
+                    <span>データをファイルに保存 (エクスポート)</span>
+                </button>
+            </div>
+            <div class="pt-2 border-t border-gray-100">
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">ファイルからデータを復元 (インポート)</label>
+                <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
+            </div>
+        </div>
+        <div class="pt-2 flex justify-end">
+            <button onclick="closeSettingsModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
+        </div>
     </div>
 </div>
 
@@ -198,7 +249,7 @@ body {
 </div>
 
 <script>
-let items = JSON.parse(localStorage.getItem('yutai_items_v3')) || [
+let items = JSON.parse(localStorage.getItem('yutai_items_v4')) || [
     {
         id: '1',
         companyName: '吉野家HD',
@@ -236,7 +287,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function saveAndRender() {
-    localStorage.setItem('yutai_items_v3', JSON.stringify(items));
+    localStorage.setItem('yutai_items_v4', JSON.stringify(items));
     renderList();
 }
 
@@ -408,6 +459,90 @@ function closeModal() {
     document.getElementById('benefit-modal').classList.add('hidden');
 }
 
+// 履歴モーダル
+function openHistoryModal() {
+    const historyList = document.getElementById('history-list');
+    const historyEmpty = document.getElementById('history-empty');
+    const completedItems = items.filter(i => i.isCompleted);
+
+    historyList.innerHTML = '';
+    if (completedItems.length === 0) {
+        historyEmpty.classList.remove('hidden');
+    } else {
+        historyEmpty.classList.add('hidden');
+        completedItems.forEach(item => {
+            const html = `
+                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 flex items-center justify-between text-sm">
+                    <div>
+                        <h4 class="font-bold text-gray-800">${escapeHtml(item.companyName)}</h4>
+                        <div class="text-[11px] text-gray-505 mt-0.5">初期総額: ${item.initialAmount || item.remainingAmount}${item.unit} / 期限: ${item.expiryDate}</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-green-100 text-green-700 text-[11px] font-bold px-2 py-1 rounded-full">使い切り</span>
+                        <button onclick="restoreItem('${item.id}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs px-2.5 py-1.5 rounded-lg shadow-sm" title="未完了に戻す">戻す</button>
+                    </div>
+                </div>
+            `;
+            historyList.insertAdjacentHTML('beforeend', html);
+        });
+    }
+    document.getElementById('history-modal').classList.remove('hidden');
+}
+
+function closeHistoryModal() {
+    document.getElementById('history-modal').classList.add('hidden');
+}
+
+function restoreItem(id) {
+    items = items.map(i => {
+        if (i.id === id) {
+            const restoreAmount = i.initialAmount && i.initialAmount > 0 ? i.initialAmount : (i.unit === '円' ? 500 : 1);
+            return { ...i, remainingAmount: restoreAmount, isCompleted: false };
+        }
+        return i;
+    });
+    saveAndRender();
+    openHistoryModal();
+}
+
+// バックアップ・設定モーダル
+function openSettingsModal() { document.getElementById('settings-modal').classList.remove('hidden'); }
+function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
+
+function exportData() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "yutai_wallet_backup_" + new Date().toISOString().split('T')[0] + ".json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const imported = JSON.parse(e.target.result);
+            if (Array.isArray(imported)) {
+                if (confirm('現在のデータにインポートしたデータを上書きしますか？')) {
+                    items = imported;
+                    saveAndRender();
+                    closeSettingsModal();
+                    alert('データの復元が完了しました！');
+                }
+            } else {
+                alert('ファイル形式が正しくありません。');
+            }
+        } catch (err) {
+            alert('JSONファイルの読み込みに失敗しました。');
+        }
+    };
+    reader.readAsText(file);
+}
+
 function saveBenefit(e) {
     e.preventDefault();
     const id = document.getElementById('item-id').value || Date.now().toString();
@@ -466,3 +601,4 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
+
