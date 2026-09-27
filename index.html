@@ -376,15 +376,15 @@ function renderList() {
         const actionText = item.unit === '円' ? '-500円' : '-1枚';
 
         const html = `
-            <div class="ios-card p-4 border border-gray-100 flex items-center justify-between space-x-2">
-                <div class="flex items-center space-x-3 min-w-0 flex-1">
-                    <button onclick="toggleFavorite('${item.id}')" class="text-lg focus:outline-none shrink-0">
+            <div class="ios-card p-3.5 border border-gray-100 flex items-center justify-between space-x-2">
+                <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+                    <button onclick="toggleFavorite('${item.id}')" class="text-base focus:outline-none shrink-0">
                         <i class="fa-solid fa-star ${item.isFavorite ? 'text-yellow-400' : 'text-gray-300'}"></i>
                     </button>
-                    <div class="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0 text-xs">
                         <i class="fa-solid fa-${item.categoryName === '食事' ? 'utensils' : (item.categoryName === '買い物' ? 'cart-shopping' : (item.categoryName === 'チケット' ? 'ticket' : 'gift'))}"></i>
                     </div>
-                    <div class="min-w-0 flex-1">
+                    <div class="min-w-0 flex-1 pr-1">
                         <h4 class="font-bold text-gray-900 text-sm truncate">${escapeHtml(item.companyName)}</h4>
                         <div class="flex items-center space-x-1.5 mt-0.5 text-[11px] text-gray-500 font-medium">
                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${badgeClass}">${badgeText}</span>
@@ -392,16 +392,16 @@ function renderList() {
                         </div>
                     </div>
                 </div>
-                <div class="text-right shrink-0 flex items-center space-x-3">
+                <div class="text-right shrink-0 flex items-center space-x-2.5">
                     <div>
                         <div class="text-sm font-extrabold text-gray-900">${item.remainingAmount}${item.unit}</div>
-                        <div class="flex items-center justify-end space-x-1.5 mt-1">
+                        <div class="flex items-center justify-end space-x-1 mt-1">
                             ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" class="p-1 px-1.5 bg-blue-50 text-blue-600 rounded text-xs" title="関連URLを開く"><i class="fa-solid fa-link text-[10px]"></i></a>` : ''}
                             <button onclick="editItem('${item.id}')" class="p-1 px-1.5 bg-gray-100 text-gray-600 rounded text-xs" title="編集"><i class="fa-solid fa-pen text-[10px]"></i></button>
                         </div>
                     </div>
                     <!-- タップするだけで減らせる即時消化ボタン -->
-                    <button onclick="useAmount('${item.id}')" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-3 py-2 rounded-xl text-xs font-bold shadow transition flex flex-col items-center justify-center">
+                    <button onclick="useAmount('${item.id}')" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-2.5 py-2 rounded-xl text-xs font-bold shadow transition flex flex-col items-center justify-center shrink-0">
                         <i class="fa-solid fa-minus text-[10px] mb-0.5"></i>
                         <span>${actionText}</span>
                     </button>
@@ -475,7 +475,7 @@ function openHistoryModal() {
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 flex items-center justify-between text-sm">
                     <div>
                         <h4 class="font-bold text-gray-800">${escapeHtml(item.companyName)}</h4>
-                        <div class="text-[11px] text-gray-505 mt-0.5">初期総額: ${item.initialAmount || item.remainingAmount}${item.unit} / 期限: ${item.expiryDate}</div>
+                        <div class="text-[11px] text-gray-500 mt-0.5">初期総額: ${item.initialAmount || item.remainingAmount}${item.unit} / 期限: ${item.expiryDate}</div>
                     </div>
                     <div class="flex items-center space-x-2">
                         <span class="bg-green-100 text-green-700 text-[11px] font-bold px-2 py-1 rounded-full">使い切り</span>
@@ -583,7 +583,7 @@ function saveBenefit(e) {
     closeModal();
 }
 
-function openCalcModal() { document.getElementById('calc-modal').classList.remove('hidden'); updateCalc(); }
+function openCalcModal() { document.appendElement ? null : document.getElementById('calc-modal').classList.remove('hidden'); document.getElementById('calc-modal').classList.remove('hidden'); updateCalc(); }
 function closeCalcModal() { document.getElementById('calc-modal').classList.add('hidden'); }
 function updateCalc() {
     const bill = parseInt(document.getElementById('calc-bill').value) || 0;
