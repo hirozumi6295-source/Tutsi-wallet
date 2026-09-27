@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>株主優待財布</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f2f2f7; margin: 0; padding: 20px; color: #1c1c1e; }
+        h1 { font-size: 24px; text-align: center; margin-bottom: 20px; }
+        .card { background: white; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input, button { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        button { background: #007aff; color: white; border: none; font-weight: bold; }
+        .item-list { margin-top: 20px; }
+        .item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+    <h1>株主優待財布</h1>
+    <div class="card">
+        <h3>優待を追加</h3>
+        <input type="text" id="name" placeholder="企業名・優待内容 (例: マクドナルド)">
+        <input type="number" id="value" placeholder="金額・価値 (例: 500)">
+        <button onclick="addItem()">追加する</button>
+    </div>
+    <div class="item-list" id="itemList"></div>
+
+    <script>
+        let items = JSON.parse(localStorage.getItem('yutai_items')) || [];
+        function render() {
+            let listHTML = '';
+            items.forEach((item, index) => {
+                listHTML += `<div class="item"><span><b>${item.name}</b><br>¥${item.value}</span><button style="width:auto; padding:6px 12px; background:#ff3b30;" onclick="deleteItem(${index})">削除</button></div>`;
+            });
+            document.getElementById('itemList').innerHTML = listHTML;
+            localStorage.setItem('yutai_items', JSON.stringify(items));
+        }
+        function addItem() {
+            let name = document.getElementById('name').value;
+            let value = document.getElementById('value').value;
+            if(!name) return alert('名前を入力してください');
+            items.push({name, value});
+            document.getElementById('name').value = '';
+            document.getElementById('value').value = '';
+            render();
+        }
+        function deleteItem(index) {
+            items.splice(index, 1);
+            render();
+        }
+        render();
+    </script>
+</body>
+</html>
