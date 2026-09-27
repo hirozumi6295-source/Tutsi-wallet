@@ -96,7 +96,7 @@ body {
             </select>
         </div>
         <div id="benefit-list" class="space-y-2.5">
-            <!-- JavaScriptで動的生成 -->
+            <!-- JavaScriptで動적生成 -->
         </div>
         <!-- 空状態 -->
         <div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
@@ -132,26 +132,26 @@ body {
                     </select>
                 </div>
             </div>
-            <!-- 有効期限と権利確定月を2カラムで並べて横幅を整えました -->
+            <!-- 有効期限とカテゴリを2カラムで綺麗に並べました -->
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">有効期限 *</label>
                     <input type="date" id="item-expiry" required class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">権利確定月</label>
-                    <input type="text" id="item-rights" placeholder="例: 3月/9月" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">カテゴリ</label>
+                    <select id="item-category" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="食事">食事</option>
+                        <option value="買い物">買い物</option>
+                        <option value="チケット">チケット</option>
+                        <option value="ギフト">ギフト</option>
+                        <option value="その他">その他</option>
+                    </select>
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">カテゴリ</label>
-                <select id="item-category" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="食事">食事</option>
-                    <option value="買い物">買い物</option>
-                    <option value="チケット">チケット</option>
-                    <option value="ギフト">ギフト</option>
-                    <option value="その他">その他</option>
-                </select>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">権利確定月</label>
+                <input type="text" id="item-rights" placeholder="例: 3月/9月" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">関連URL (任意)</label>
@@ -609,3 +609,4 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
+
