@@ -510,13 +510,20 @@ function openSettingsModal() { document.getElementById('settings-modal').classLi
 function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
 
 function exportData() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", "yutai_wallet_backup_" + new Date().toISOString().split('T')[0] + ".json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    try {
+        const jsonStr = JSON.stringify(items, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.href = url;
+        downloadAnchor.download = "yutai_wallet_backup_" + new Date().toISOString().split('T')[0] + ".json";
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        document.body.removeChild(downloadAnchor);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (err) {
+        alert('エクスポートに失敗しました: ' + err.message);
+    }
 }
 
 function importData(event) {
@@ -583,7 +590,7 @@ function saveBenefit(e) {
     closeModal();
 }
 
-function openCalcModal() { document.appendElement ? null : document.getElementById('calc-modal').classList.remove('hidden'); document.getElementById('calc-modal').classList.remove('hidden'); updateCalc(); }
+function openCalcModal() { document.getElementById('calc-modal').classList.remove('hidden'); updateCalc(); }
 function closeCalcModal() { document.getElementById('calc-modal').classList.add('hidden'); }
 function updateCalc() {
     const bill = parseInt(document.getElementById('calc-bill').value) || 0;
@@ -601,3 +608,4 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
+
