@@ -44,20 +44,20 @@ input, select, textarea {
 
 <!-- ヘッダー -->
 <header class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md">
-    <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-wallet text-xl"></i>
-            <h1 class="font-bold text-lg tracking-tight">株主優待財布 (クラウド同期)</h1>
+    <div class="max-w-md mx-auto px-3 py-2.5 flex justify-between items-center">
+        <div class="flex items-center space-x-1.5 min-w-0 pr-1">
+            <i class="fa-solid fa-wallet text-base shrink-0"></i>
+            <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布</h1>
         </div>
-        <div class="flex items-center space-x-2">
-            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1" title="データ管理・設定">
-                <i class="fa-solid fa-gear text-xs"></i>
+        <div class="flex items-center space-x-1.5 shrink-0">
+            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="データ管理・設定">
+                <i class="fa-solid fa-gear"></i>
             </button>
-            <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1" title="お会計シミュレーター">
-                <i class="fa-solid fa-calculator text-xs"></i>
+            <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="お会計シミュレーター">
+                <i class="fa-solid fa-calculator"></i>
             </button>
-            <button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1">
-                <i class="fa-solid fa-plus text-xs"></i>
+            <button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1">
+                <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>追加</span>
             </button>
         </div>
@@ -114,7 +114,7 @@ input, select, textarea {
             </select>
         </div>
         <div id="benefit-list" class="space-y-2.5">
-            <!-- JavaScriptで動적生成 -->
+            <!-- JavaScriptで動的生成 -->
         </div>
         <!-- 空状態 -->
         <div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
@@ -482,7 +482,7 @@ function openModal() {
     document.getElementById('benefit-form').reset();
     document.getElementById('item-id').value = '';
     document.getElementById('modal-title').textContent = '株主優待の新規登録';
-    document.getElementById('delete-btn-container').classList.add('hidden'); // 新規時は削除ボタン非表示
+    document.getElementById('delete-btn-container').classList.add('hidden');
     const defaultDate = new Date();
     defaultDate.setMonth(defaultDate.getMonth() + 6);
     document.getElementById('item-expiry').value = defaultDate.toISOString().split('T')[0];
@@ -502,7 +502,7 @@ function editItem(id) {
     document.getElementById('item-url').value = item.url || '';
     document.getElementById('item-memo').value = item.memo || '';
     document.getElementById('modal-title').textContent = '株主優待の編集';
-    document.getElementById('delete-btn-container').classList.remove('hidden'); // 編集時は削除ボタンを表示
+    document.getElementById('delete-btn-container').classList.remove('hidden');
     document.getElementById('benefit-modal').classList.remove('hidden');
 }
 
@@ -510,7 +510,6 @@ function closeModal() {
     document.getElementById('benefit-modal').classList.add('hidden');
 }
 
-// 完全に削除する関数
 function deleteCurrentItem() {
     const id = document.getElementById('item-id').value;
     if (!id) return;
