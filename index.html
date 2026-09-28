@@ -114,7 +114,7 @@ input, select, textarea {
             </select>
         </div>
         <div id="benefit-list" class="space-y-2.5">
-            <!-- JavaScriptで動的生成 -->
+            <!-- JavaScriptで動적生成 -->
         </div>
         <!-- 空状態 -->
         <div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
@@ -178,6 +178,15 @@ input, select, textarea {
                 <label for="item-memo" class="block text-xs font-semibold text-gray-600 uppercase mb-1">メモ</label>
                 <textarea id="item-memo" rows="2" placeholder="利用条件など" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             </div>
+            
+            <!-- 編集時のみ表示される削除ボタン -->
+            <div id="delete-btn-container" class="hidden pt-2">
+                <button type="button" onclick="deleteCurrentItem()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2.5 rounded-xl text-xs transition border border-red-200 flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>この優待を完全に削除する</span>
+                </button>
+            </div>
+
             <div class="pt-3 flex space-x-3">
                 <button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm transition">キャンセル</button>
                 <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-md">保存する</button>
@@ -263,7 +272,6 @@ input, select, textarea {
 </div>
 
 <script>
-// ▼ ご提示いただいた本番用の設定値を組み込み済みです ▼
 const firebaseConfig = {
     apiKey: "AIzaSyChxbVdrx1FrNg0qETgwyUhpLwHEPqEbBA",
     authDomain: "yutai-wallet-36143.firebaseapp.com",
@@ -274,17 +282,13 @@ const firebaseConfig = {
     measurementId: "G-R4ZN7STLF3"
 };
 
-// Firebase初期化
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-
-// Firestoreのドキュメント参照（このデータがクラウド上で共有されます）
 const docRef = db.collection("yutaiWallet").doc("sharedData");
 
 let items = [];
 let currentCategory = 'すべて';
 
-// リアルタイムリスナー（データが変更されると自動で画面が更新されます）
 docRef.onSnapshot((doc) => {
     const statusEl = document.getElementById('sync-status');
     if (doc.exists) {
@@ -292,7 +296,6 @@ docRef.onSnapshot((doc) => {
         statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-down mr-1"></i> クラウドと同期完了';
         statusEl.className = "bg-green-600 text-white text-center text-xs py-1 px-4";
     } else {
-        // 初回起動時などのデータがない場合、初期データを登録
         items = [
             {
                 id: '1',
@@ -313,7 +316,7 @@ docRef.onSnapshot((doc) => {
     }
     renderList();
     setTimeout(() => {
-        statusEl.style.display = 'none'; // 数秒後にステータスバーを隠す
+        statusEl.style.display = 'none';
     }, 3000);
 }, (error) => {
     console.error("同期エラー: ", error);
@@ -322,7 +325,6 @@ docRef.onSnapshot((doc) => {
     statusEl.className = "bg-red-600 text-white text-center text-xs py-1 px-4";
 });
 
-// クラウド（Firestore）へデータを保存する関数
 function saveToCloud() {
     docRef.set({ items: items }).catch((error) => {
         alert('保存に失敗しました: ' + error.message);
@@ -480,6 +482,7 @@ function openModal() {
     document.getElementById('benefit-form').reset();
     document.getElementById('item-id').value = '';
     document.getElementById('modal-title').textContent = '株主優待の新規登録';
+    document.getElementById('delete-btn-container').classList.add('hidden'); // 新規時は削除ボタン非表示
     const defaultDate = new Date();
     defaultDate.setMonth(defaultDate.getMonth() + 6);
     document.getElementById('item-expiry').value = defaultDate.toISOString().split('T')[0];
@@ -499,11 +502,24 @@ function editItem(id) {
     document.getElementById('item-url').value = item.url || '';
     document.getElementById('item-memo').value = item.memo || '';
     document.getElementById('modal-title').textContent = '株主優待の編集';
+    document.getElementById('delete-btn-container').classList.remove('hidden'); // 編集時は削除ボタンを表示
     document.getElementById('benefit-modal').classList.remove('hidden');
 }
 
 function closeModal() {
     document.getElementById('benefit-modal').classList.add('hidden');
+}
+
+// 完全に削除する関数
+function deleteCurrentItem() {
+    const id = document.getElementById('item-id').value;
+    if (!id) return;
+    
+    if (confirm('この優待を完全に削除してもよろしいですか？')) {
+        items = items.filter(i => i.id !== id);
+        saveAndRender();
+        closeModal();
+    }
 }
 
 function openHistoryModal() {
@@ -629,4 +645,3 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
-
