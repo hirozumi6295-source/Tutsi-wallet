@@ -6,6 +6,11 @@
 <title>株主優待財布</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Firebase SDKの読み込み (compat版) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
 <style>
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -32,12 +37,17 @@ input, select, textarea {
 </head>
 <body class="bg-gray-100 min-h-screen pb-24">
 
+<!-- 同期ステータス表示用バナー -->
+<div id="sync-status" class="bg-indigo-600 text-indigo-100 text-center text-xs py-1 px-4">
+    <i class="fa-solid fa-rotate fa-spin mr-1"></i> クラウドと接続中...
+</div>
+
 <!-- ヘッダー -->
 <header class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md">
     <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
         <div class="flex items-center space-x-2">
             <i class="fa-solid fa-wallet text-xl"></i>
-            <h1 class="font-bold text-lg tracking-tight">株主優待財布</h1>
+            <h1 class="font-bold text-lg tracking-tight">株主優待財布 (クラウド同期)</h1>
         </div>
         <div class="flex items-center space-x-2">
             <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full text-sm font-medium transition active:scale-95 flex items-center space-x-1" title="データ管理・設定">
@@ -195,27 +205,23 @@ input, select, textarea {
     </div>
 </div>
 
-<!-- データ管理・設定モーダル (バックアップ・復元) -->
+<!-- データ管理・設定モーダル -->
 <div id="settings-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5">
         <div class="flex justify-between items-center pb-2 border-b border-gray-100">
-            <h3 class="font-bold text-lg text-gray-800">データバックアップ・復元</h3>
+            <h3 class="font-bold text-lg text-gray-800">データ同期・バックアップ</h3>
             <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
         <div class="space-y-4 text-sm text-gray-600">
             <div class="bg-indigo-50 p-3.5 rounded-xl text-indigo-900 space-y-1">
-                <p class="font-bold text-xs"><i class="fa-solid fa-circle-info mr-1"></i> バックアップについて</p>
-                <p class="text-xs leading-relaxed">データをファイルに書き出して保存できます。スマホの機種変更時やブラウザのデータ削除対策としてご利用ください。</p>
+                <p class="font-bold text-xs"><i class="fa-solid fa-circle-info mr-1"></i> クラウド同期について</p>
+                <p class="text-xs leading-relaxed">Firebaseを通じて、iPhoneとiPadでデータが自動で同期されます。</p>
             </div>
             <div>
-                <button onclick="exportData()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-sm">
-                    <i class="fa-solid fa-download text-xs"></i>
-                    <span>データをファイルに保存 (エクスポート)</span>
+                <button onclick="exportData()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition flex items-center justify-center space-x-2 text-xs">
+                    <i class="fa-solid fa-download"></i>
+                    <span>バックアップファイル保存 (JSON)</span>
                 </button>
-            </div>
-            <div class="pt-2 border-t border-gray-100">
-                <label for="import-file" class="block text-xs font-semibold text-gray-600 uppercase mb-2">ファイルからデータを復元 (インポート)</label>
-                <input type="file" id="import-file" accept=".json" onchange="importData(event)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
             </div>
         </div>
         <div class="pt-2 flex justify-end">
@@ -257,57 +263,74 @@ input, select, textarea {
 </div>
 
 <script>
-// ▼ここにFirebaseでコピーした設定値を貼り付けてください▼
+// ▼ ご提示いただいた本番用の設定値を組み込み済みです ▼
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyChxbVdrx1FrNg0qETgwyUhpLwHEPqEbBA",
+    authDomain: "yutai-wallet-36143.firebaseapp.com",
+    projectId: "yutai-wallet-36143",
+    storageBucket: "yutai-wallet-36143.firebasestorage.app",
+    messagingSenderId: "191265821604",
+    appId: "1:191265821604:web:f7d93be27fb7f6c095a731",
+    measurementId: "G-R4ZN7STLF3"
 };
 
-const STORAGE_KEY = 'yutai_items_v4';
+// Firebase初期化
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-let items = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
-    {
-        id: '1',
-        companyName: '吉野家HD',
-        categoryName: '食事',
-        remainingAmount: 3000,
-        initialAmount: 3000,
-        unit: '円',
-        expiryDate: new Date(Date.now() + 12*86400000).toISOString().split('T')[0],
-        url: 'https://www.yoshinoya.com/',
-        memo: 'テイクアウトでも利用可能。',
-        isCompleted: false,
-        rightsMonth: '2月/8月',
-        isFavorite: true
-    },
-    {
-        id: '2',
-        companyName: 'すかいらーく',
-        categoryName: '買い物',
-        remainingAmount: 5000,
-        initialAmount: 5000,
-        unit: '円',
-        expiryDate: new Date(Date.now() + 25*86400000).toISOString().split('T')[0],
-        url: 'https://www.skylark.co.jp/',
-        memo: '500円単位で利用可能。',
-        isCompleted: false,
-        rightsMonth: '6月/12月',
-        isFavorite: false
-    }
-];
+// Firestoreのドキュメント参照（このデータがクラウド上で共有されます）
+const docRef = db.collection("yutaiWallet").doc("sharedData");
 
+let items = [];
 let currentCategory = 'すべて';
 
-window.addEventListener('DOMContentLoaded', () => {
+// リアルタイムリスナー（データが変更されると自動で画面が更新されます）
+docRef.onSnapshot((doc) => {
+    const statusEl = document.getElementById('sync-status');
+    if (doc.exists) {
+        items = doc.data().items || [];
+        statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-down mr-1"></i> クラウドと同期完了';
+        statusEl.className = "bg-green-600 text-white text-center text-xs py-1 px-4";
+    } else {
+        // 初回起動時などのデータがない場合、初期データを登録
+        items = [
+            {
+                id: '1',
+                companyName: '吉野家HD',
+                categoryName: '食事',
+                remainingAmount: 3000,
+                initialAmount: 3000,
+                unit: '円',
+                expiryDate: new Date(Date.now() + 12*86400000).toISOString().split('T')[0],
+                url: 'https://www.yoshinoya.com/',
+                memo: 'テイクアウトでも利用可能。',
+                isCompleted: false,
+                rightsMonth: '2月/8月',
+                isFavorite: true
+            }
+        ];
+        saveToCloud();
+    }
     renderList();
+    setTimeout(() => {
+        statusEl.style.display = 'none'; // 数秒後にステータスバーを隠す
+    }, 3000);
+}, (error) => {
+    console.error("同期エラー: ", error);
+    const statusEl = document.getElementById('sync-status');
+    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> クラウド同期エラー';
+    statusEl.className = "bg-red-600 text-white text-center text-xs py-1 px-4";
 });
 
+// クラウド（Firestore）へデータを保存する関数
+function saveToCloud() {
+    docRef.set({ items: items }).catch((error) => {
+        alert('保存に失敗しました: ' + error.message);
+    });
+}
+
 function saveAndRender() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    saveToCloud();
     renderList();
 }
 
@@ -365,7 +388,6 @@ function renderList() {
         }
     });
 
-    // 選択中のカテゴリに連動したサマリー集計
     const activeItems = items.filter(i => !i.isCompleted);
     const summaryItems = currentCategory === 'すべて' 
         ? activeItems 
@@ -374,7 +396,6 @@ function renderList() {
     const activeYen = summaryItems.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
     const activeTickets = summaryItems.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
     
-    // サマリーのタイトルと金額・件数の更新
     document.getElementById('summary-title').textContent = currentCategory === 'すべて' ? '優待総額' : `${currentCategory}優待総額`;
     document.getElementById('total-balance').textContent = activeYen > 0 ? '¥' + activeYen.toLocaleString() + (activeTickets > 0 ? ` / ${activeTickets}枚` : '') : (activeTickets > 0 ? `${activeTickets}枚` : '¥0');
     document.getElementById('active-count').textContent = '登録 ' + summaryItems.length + '件';
@@ -427,7 +448,6 @@ function renderList() {
                             <button onclick="editItem('${item.id}')" class="p-1 px-1.5 bg-gray-100 text-gray-600 rounded text-xs" title="編集"><i class="fa-solid fa-pen text-[10px]"></i></button>
                         </div>
                     </div>
-                    <!-- タップするだけで減らせる即時消化ボタン -->
                     <button onclick="useAmount('${item.id}')" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-2.5 py-2 rounded-xl text-xs font-bold shadow transition flex flex-col items-center justify-center shrink-0">
                         <i class="fa-solid fa-minus text-[10px] mb-0.5"></i>
                         <span>${actionText}</span>
@@ -486,7 +506,6 @@ function closeModal() {
     document.getElementById('benefit-modal').classList.add('hidden');
 }
 
-// 履歴モーダル
 function openHistoryModal() {
     const historyList = document.getElementById('history-list');
     const historyEmpty = document.getElementById('history-empty');
@@ -532,7 +551,6 @@ function restoreItem(id) {
     openHistoryModal();
 }
 
-// バックアップ・設定モーダル
 function openSettingsModal() { document.getElementById('settings-modal').classList.remove('hidden'); }
 function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
 
@@ -551,30 +569,6 @@ function exportData() {
     } catch (err) {
         alert('エクスポートに失敗しました: ' + err.message);
     }
-}
-
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const imported = JSON.parse(e.target.result);
-            if (Array.isArray(imported)) {
-                if (confirm('現在のデータにインポートしたデータを上書きしますか？')) {
-                    items = imported;
-                    saveAndRender();
-                    closeSettingsModal();
-                    alert('データの復元が完了しました！');
-                }
-            } else {
-                alert('ファイル形式が正しくありません。');
-            }
-        } catch (err) {
-            alert('JSONファイルの読み込みに失敗しました。');
-        }
-    };
-    reader.readAsText(file);
 }
 
 function saveBenefit(e) {
@@ -635,3 +629,4 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
+
