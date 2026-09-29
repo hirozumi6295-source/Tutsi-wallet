@@ -423,47 +423,29 @@ function saveAndRender() {
 function setFilter(type, val) {
     currentFilterType = type;
     currentFilterValue = val;
-    
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('bg-indigo-600', 'text-white', 'bg-orange-500', 'bg-emerald-600', 'bg-sky-600', 'bg-purple-600');
-        if (btn.id.includes('near')) {
-            btn.classList.add('bg-white', 'text-orange-600', 'border', 'border-orange-200');
-        } else {
-            btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200');
-        }
-    });
-    
-    const activeBtn = document.getElementById('filter-' + val);
-    if (activeBtn) {
-        activeBtn.classList.remove('bg-white', 'text-gray-600', 'text-orange-600', 'border', 'border-gray-200', 'border-orange-200');
-        if (val === 'near') {
-            activeBtn.classList.add('bg-orange-500', 'text-white');
-        } else if (val === '食事') {
-            activeBtn.classList.add('bg-orange-600', 'text-white');
-        } else if (val === '買い物') {
-            activeBtn.classList.add('bg-emerald-600', 'text-white');
-        } else if (val === 'サービス') {
-            activeBtn.classList.add('bg-sky-600', 'text-white');
-        } else if (val === 'その他') {
-            activeBtn.classList.add('bg-purple-600', 'text-white');
-        } else {
-            activeBtn.classList.add('bg-indigo-600', 'text-white');
-        }
-    }
+    updateDynamicFilterTabs();
     renderList();
 }
 
 function updateDynamicFilterTabs() {
     const container = document.getElementById('filter-tabs-container');
     
+    // 各ボタンの判定・アクティブスタイル生成
+    const isAll = (currentFilterType === 'cat' && currentFilterValue === 'すべて');
+    const isFood = (currentFilterType === 'cat' && currentFilterValue === '食事');
+    const isShop = (currentFilterType === 'cat' && currentFilterValue === '買い物');
+    const isService = (currentFilterType === 'cat' && currentFilterValue === 'サービス');
+    const isOther = (currentFilterType === 'cat' && currentFilterValue === 'その他');
+    const isNear = (currentFilterType === 'expiry' && currentFilterValue === 'near');
+
     const defaultButtonsHTML = `
-        <button onclick="setFilter('cat', 'すべて')" id="filter-すべて" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='すべて'?'bg-indigo-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">すべて</button>
-        <button onclick="setFilter('cat', '食事')" id="filter-食事" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='食事'?'bg-orange-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">食事</button>
-        <button onclick="setFilter('cat', '買い物')" id="filter-買い物" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='買い物'?'bg-emerald-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">買い物</button>
-        <button onclick="setFilter('cat', 'サービス')" id="filter-サービス" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='サービス'?'bg-sky-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">サービス</button>
-        <button onclick="setFilter('cat', 'その他')" id="filter-その他" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='その他'?'bg-purple-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">その他</button>
+        <button onclick="setFilter('cat', 'すべて')" id="filter-すべて" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isAll ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">すべて</button>
+        <button onclick="setFilter('cat', '食事')" id="filter-食事" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isFood ? 'bg-orange-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">食事</button>
+        <button onclick="setFilter('cat', '買い物')" id="filter-買い物" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isShop ? 'bg-emerald-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">買い物</button>
+        <button onclick="setFilter('cat', 'サービス')" id="filter-サービス" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isService ? 'bg-sky-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">サービス</button>
+        <button onclick="setFilter('cat', 'その他')" id="filter-その他" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isOther ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">その他</button>
         <span class="text-gray-300 self-center">|</span>
-        <button onclick="setFilter('expiry', 'near')" id="filter-near" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='expiry'&&currentFilterValue==='near'?'bg-orange-500 text-white':'bg-white text-orange-600 border border-orange-200'} shadow-sm transition"><i class="fa-solid fa-triangle-exclamation mr-1"></i>30日以内</button>
+        <button onclick="setFilter('expiry', 'near')" id="filter-near" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isNear ? 'bg-orange-500 text-white' : 'bg-white text-orange-600 border border-orange-200'} shadow-sm transition"><i class="fa-solid fa-triangle-exclamation mr-1"></i>30日以内</button>
     `;
     
     const activeItems = items.filter(i => !i.isCompleted && i.expiryDate);
@@ -781,7 +763,6 @@ function openScheduleModal() {
     const scheduleList = document.getElementById('schedule-list');
     scheduleList.innerHTML = '';
     
-    // 未完了の優待から有効期限のあるものを抽出
     const activeItems = items.filter(i => !i.isCompleted && i.expiryDate);
     
     if (activeItems.length === 0) {
@@ -790,22 +771,19 @@ function openScheduleModal() {
         return;
     }
 
-    // 年月ごと（例: "2026-10"）にグループ分け
     const grouped = {};
     activeItems.forEach(item => {
-        const ym = item.expiryDate.substring(0, 7); // "YYYY-MM"
+        const ym = item.expiryDate.substring(0, 7);
         if (!grouped[ym]) grouped[ym] = [];
         grouped[ym].push(item);
     });
 
-    // 年月を古い順（近い順）にソート
     const sortedYM = Object.keys(grouped).sort();
 
     sortedYM.forEach(ym => {
         const [y, m] = ym.split('-');
         const monthList = grouped[ym];
         
-        // その月の合計金額・枚数を計算
         const yenTotal = monthList.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
         const ticketTotal = monthList.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
         const totalStr = yenTotal > 0 ? `¥${yenTotal.toLocaleString()}` + (ticketTotal > 0 ? ` / ${ticketTotal}枚` : '') : `${ticketTotal}枚`;
@@ -870,7 +848,7 @@ function openHistoryModal() {
             historyList.insertAdjacentHTML('beforeend', html);
         });
     }
-    document.getElementById('history-modal').classList.remove('hidden');
+    document.getElementById('history-modal').classList.add('hidden');
 }
 
 function closeHistoryModal() {
