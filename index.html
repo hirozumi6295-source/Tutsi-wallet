@@ -46,25 +46,25 @@ input, select, textarea {
 <header class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md">
     <div class="max-w-md mx-auto px-3 py-2.5 flex justify-between items-center">
         <div class="flex items-center space-x-1.5 min-w-0 pr-1">
-            <i class="fa-solid fa-wallet text-sm shrink-0"></i>
-            <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布</h1>
+            <i class="fa-solid fa-wallet text-base shrink-0"></i>
+            <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布 (クラウド同期)</h1>
         </div>
-        <div class="flex items-center space-x-1 shrink-0">
-            <button onclick="openStatsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shrink-0" title="節約統計・目標">
-                <i class="fa-solid fa-chart-pie text-xs"></i>
+        <div class="flex items-center space-x-1.5 shrink-0">
+            <button onclick="openStatsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="節約統計・目標">
+                <i class="fa-solid fa-chart-pie"></i>
             </button>
-            <button onclick="openScheduleModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shrink-0" title="優待消化カレンダー">
-                <i class="fa-solid fa-calendar-days text-xs"></i>
+            <button onclick="openScheduleModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="優待消化カレンダー">
+                <i class="fa-solid fa-calendar-days"></i>
             </button>
-            <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shrink-0" title="お会計シミュレーター">
-                <i class="fa-solid fa-calculator text-xs"></i>
+            <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="お会計シミュレーター">
+                <i class="fa-solid fa-calculator"></i>
             </button>
-            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shrink-0" title="データ管理・設定">
-                <i class="fa-solid fa-gear text-xs"></i>
+            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="データ管理・設定">
+                <i class="fa-solid fa-gear"></i>
             </button>
-            <button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1 shrink-0">
+            <button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
-                <span class="text-xs">追加</span>
+                <span>追加</span>
             </button>
         </div>
     </div>
@@ -81,7 +81,7 @@ input, select, textarea {
         </div>
         <div id="summary-footer" class="mt-4 pt-3 border-t border-white/20 flex justify-between text-xs text-indigo-100">
             <div>期限間近 (30日以内): <span id="near-expiry-count" class="font-bold text-white">0件</span></div>
-            <div onclick="openHistoryModal()" class="cursor-pointer hover:opacity-80 transition underline font-medium">使い切り履歴: <span id="used-count" class="font-bold text-white">0件</span></div>
+            <div>使い切り履歴: <button onclick="openHistoryModal()" class="underline font-bold text-white hover:opacity-80"><span id="used-count">0件</span></button></div>
         </div>
     </section>
 
@@ -932,7 +932,7 @@ function openHistoryModal() {
             historyList.insertAdjacentHTML('beforeend', html);
         });
     }
-    document.getElementById('history-modal').classList.remove('hidden');
+    document.getElementById('history-modal').classList.add('hidden');
 }
 
 function closeHistoryModal() {
