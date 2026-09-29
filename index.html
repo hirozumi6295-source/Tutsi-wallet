@@ -50,6 +50,9 @@ input, select, textarea {
             <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布 (クラウド同期)</h1>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0">
+            <button onclick="openStatsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="節約統計・目標">
+                <i class="fa-solid fa-chart-pie"></i>
+            </button>
             <button onclick="openScheduleModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="優待消化カレンダー">
                 <i class="fa-solid fa-calendar-days"></i>
             </button>
@@ -231,6 +234,42 @@ input, select, textarea {
         </div>
         <p class="text-xs text-gray-500">レジスタッフにご提示ください</p>
         <button onclick="closeBarcodeModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 rounded-xl text-xs transition">閉じる</button>
+    </div>
+</div>
+
+<!-- 節約統計・目標ビューモーダル -->
+<div id="stats-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col space-y-4">
+        <div class="flex justify-between items-center pb-2 border-b border-gray-100 shrink-0">
+            <h3 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-chart-pie text-indigo-600 mr-1.5"></i>節約統計・消化目標</h3>
+            <button onclick="closeStatsModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="space-y-4 overflow-y-auto flex-1 pr-1">
+            <!-- 累計節約額カード -->
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-4 rounded-2xl shadow-md space-y-1">
+                <p class="text-xs font-medium text-emerald-100 uppercase tracking-wider">これまでの累計節約総額 (使い切り済み)</p>
+                <div id="stats-saved-total" class="text-3xl font-extrabold tracking-tight">¥0</div>
+                <p id="stats-saved-count" class="text-xs text-emerald-100 pt-1">使い切り完了件数: 0件</p>
+            </div>
+
+            <!-- 今月期限の目標カード -->
+            <div class="bg-gradient-to-br from-orange-500 to-red-600 text-white p-4 rounded-2xl shadow-md space-y-1">
+                <p class="text-xs font-medium text-orange-100 uppercase tracking-wider">今月 (当月) 期限の残り残高</p>
+                <div id="stats-month-total" class="text-2xl font-extrabold tracking-tight">¥0</div>
+                <p id="stats-month-count" class="text-xs text-orange-100 pt-1">今月中に消化すべき銘柄: 0件</p>
+            </div>
+
+            <!-- カテゴリ別消化状況 -->
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2">
+                <h4 class="font-bold text-xs text-gray-700 uppercase"><i class="fa-solid fa-tags mr-1"></i>カテゴリ別 残高内訳</h4>
+                <div id="stats-category-breakdown" class="space-y-2 text-xs">
+                    <!-- 動的生成 -->
+                </div>
+            </div>
+        </div>
+        <div class="pt-2 border-t border-gray-100 shrink-0 flex justify-end">
+            <button onclick="closeStatsModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
+        </div>
     </div>
 </div>
 
@@ -430,7 +469,6 @@ function setFilter(type, val) {
 function updateDynamicFilterTabs() {
     const container = document.getElementById('filter-tabs-container');
     
-    // それぞれのタブがアクティブかどうかの判定を完全に独立させる
     const isAll = (currentFilterType === 'cat' && currentFilterValue === 'すべて');
     const isFood = (currentFilterType === 'cat' && currentFilterValue === '食事');
     const isShop = (currentFilterType === 'cat' && currentFilterValue === '買い物');
@@ -758,6 +796,52 @@ function deleteCurrentItem() {
     }
 }
 
+// 節約統計・目標ビューのオープン処理
+function openStatsModal() {
+    const completedItems = items.filter(i => i.isCompleted);
+    const savedYen = completedItems.filter(i => i.unit === '円').reduce((acc, cur) => acc + (cur.initialAmount || 0), 0);
+    const savedTickets = completedItems.filter(i => i.unit === '枚').reduce((acc, cur) => acc + (cur.initialAmount || 0), 0);
+    
+    const savedTotalStr = savedYen > 0 ? `¥${savedYen.toLocaleString()}` + (savedTickets > 0 ? ` / ${savedTickets}枚` : '') : `${savedTickets}枚`;
+    document.getElementById('stats-saved-total').textContent = savedTotalStr;
+    document.getElementById('stats-saved-count').textContent = `使い切り完了件数: ${completedItems.length}件`;
+
+    // 今月（当月）期限の残り残高計算
+    const now = new Date();
+    const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const monthItems = items.filter(i => !i.isCompleted && i.expiryDate && i.expiryDate.startsWith(currentYM));
+    const monthYen = monthItems.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+    const monthTickets = monthItems.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+    const monthTotalStr = monthYen > 0 ? `¥${monthYen.toLocaleString()}` + (monthTickets > 0 ? ` / ${monthTickets}枚` : '') : `${monthTickets}枚`;
+
+    document.getElementById('stats-month-total').textContent = monthTotalStr;
+    document.getElementById('stats-month-count').textContent = `今月中に消化すべき銘柄: ${monthItems.length}件`;
+
+    // カテゴリ別内訳
+    const breakdownContainer = document.getElementById('stats-category-breakdown');
+    breakdownContainer.innerHTML = '';
+    const categories = ['食事', '買い物', 'サービス', 'その他'];
+    categories.forEach(cat => {
+        const catItems = items.filter(i => !i.isCompleted && i.categoryName === cat);
+        const catYen = catItems.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+        const catTickets = catItems.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+        const catStr = catYen > 0 ? `¥${catYen.toLocaleString()}` + (catTickets > 0 ? ` / ${catTickets}枚` : '') : `${catTickets}枚`;
+
+        breakdownContainer.insertAdjacentHTML('beforeend', `
+            <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100">
+                <span class="font-bold text-gray-700">${cat}</span>
+                <span class="font-extrabold text-indigo-600">${catStr} (${catItems.length}件)</span>
+            </div>
+        `);
+    });
+
+    document.getElementById('stats-modal').classList.remove('hidden');
+}
+
+function closeStatsModal() {
+    document.getElementById('stats-modal').classList.add('hidden');
+}
+
 // 優待消化カレンダー（有効期限ベースの年間・月別スケジュール）
 function openScheduleModal() {
     const scheduleList = document.getElementById('schedule-list');
@@ -848,7 +932,7 @@ function openHistoryModal() {
             historyList.insertAdjacentHTML('beforeend', html);
         });
     }
-    document.getElementById('history-modal').classList.remove('hidden');
+    document.getElementById('history-modal').classList.add('hidden');
 }
 
 function closeHistoryModal() {
@@ -946,4 +1030,3 @@ function escapeHtml(str) {
 </script>
 </body>
 </html>
-
