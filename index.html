@@ -50,14 +50,11 @@ input, select, textarea {
             <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布 (クラウド同期)</h1>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0">
-            <button onclick="openScheduleModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="優待消化カレンダー">
-                <i class="fa-solid fa-calendar-days"></i>
+            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="データ管理・設定">
+                <i class="fa-solid fa-gear"></i>
             </button>
             <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="お会計シミュレーター">
                 <i class="fa-solid fa-calculator"></i>
-            </button>
-            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="データ管理・設定">
-                <i class="fa-solid fa-gear"></i>
             </button>
             <button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
@@ -70,19 +67,19 @@ input, select, textarea {
 <!-- メインコンテナ -->
 <main class="max-w-md mx-auto px-4 py-4 space-y-4">
     <!-- 総残高サマリー -->
-    <section id="summary-card" class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg transition-colors duration-300">
+    <section class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg">
         <p id="summary-title" class="text-xs uppercase tracking-wider text-indigo-200 font-medium">優待総額</p>
         <div class="flex items-baseline justify-between mt-1">
             <h2 id="total-balance" class="text-3xl font-extrabold tracking-tight">¥0</h2>
-            <span id="active-count" class="text-xs bg-black/20 px-2.5 py-1 rounded-full text-white font-medium">登録 0件</span>
+            <span id="active-count" class="text-xs bg-indigo-800/60 px-2.5 py-1 rounded-full text-indigo-100 font-medium">登録 0件</span>
         </div>
-        <div id="summary-footer" class="mt-4 pt-3 border-t border-white/20 flex justify-between text-xs text-indigo-100">
+        <div class="mt-4 pt-3 border-t border-indigo-400/30 flex justify-between text-xs text-indigo-100">
             <div>期限間近 (30日以内): <span id="near-expiry-count" class="font-bold text-white">0件</span></div>
-            <div>使い切り履歴: <button onclick="openHistoryModal()" class="underline font-bold text-white hover:opacity-80"><span id="used-count">0件</span></button></div>
+            <div>使い切り履歴: <button onclick="openHistoryModal()" class="underline font-bold text-white hover:text-indigo-200"><span id="used-count">0件</span></button></div>
         </div>
     </section>
 
-    <!-- 検索＆タブフィルター -->
+    <!-- 検索＆カテゴリタブ -->
     <section class="space-y-3">
         <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -93,9 +90,13 @@ input, select, textarea {
                 oninput="renderList()">
         </div>
         
-        <!-- カテゴリ＆期限フィルター切り替えタブ -->
-        <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1" id="filter-tabs-container">
-            <!-- 動的生成 -->
+        <!-- カテゴリフィルター -->
+        <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
+            <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition">すべて</button>
+            <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">食事</button>
+            <button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">買い物</button>
+            <button onclick="setCategory('サービス')" id="cat-サービス" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">サービス</button>
+            <button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">その他</button>
         </div>
     </section>
 
@@ -164,39 +165,12 @@ input, select, textarea {
                 </div>
                 <div>
                     <label for="item-rights" class="block text-xs font-semibold text-gray-600 uppercase mb-1">権利確定月</label>
-                    <select id="item-rights" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">選択なし</option>
-                        <option value="1月">1月末</option>
-                        <option value="2月">2月末</option>
-                        <option value="3月">3月末</option>
-                        <option value="4月">4月末</option>
-                        <option value="5月">5月末</option>
-                        <option value="6月">6月末</option>
-                        <option value="7月">7月末</option>
-                        <option value="8月">8月末</option>
-                        <option value="9月">9月末</option>
-                        <option value="10月">10月末</option>
-                        <option value="11月">11月末</option>
-                        <option value="12月">12月末</option>
-                        <option value="2月/8月">2月 / 8月 (年2回)</option>
-                        <option value="3月/9月">3月 / 9月 (年2回)</option>
-                    </select>
+                    <input type="text" id="item-rights" placeholder="例: 3月/9月" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>
             <div>
                 <label for="item-url" class="block text-xs font-semibold text-gray-600 uppercase mb-1">関連URL (任意)</label>
                 <input type="url" id="item-url" placeholder="https://www.yoshinoya.com/" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">バーコード・優待券 画像 (任意)</label>
-                <div class="flex items-center space-x-2">
-                    <input type="file" id="item-image-file" accept="image/*" onchange="handleImageUpload(event)" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                    <button type="button" onclick="clearImage()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-2 rounded-xl text-xs shrink-0">クリア</button>
-                </div>
-                <input type="hidden" id="item-barcode-img">
-                <div id="image-preview-container" class="mt-2 hidden">
-                    <img id="image-preview" src="" alt="プレビュー" class="h-20 rounded-xl border border-gray-200 object-contain">
-                </div>
             </div>
             <div>
                 <label for="item-memo" class="block text-xs font-semibold text-gray-600 uppercase mb-1">メモ</label>
@@ -219,35 +193,6 @@ input, select, textarea {
     </div>
 </div>
 
-<!-- バーコード画像プレビュー用モーダル -->
-<div id="barcode-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closeBarcodeModal()">
-    <div class="bg-white max-w-sm w-full rounded-2xl p-5 text-center space-y-3 relative" onclick="event.stopPropagation()">
-        <div class="flex justify-between items-center pb-2 border-b border-gray-100">
-            <h4 id="barcode-title" class="font-bold text-gray-800 text-sm">優待券・バーコード表示</h4>
-            <button onclick="closeBarcodeModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
-        </div>
-        <div class="py-2 flex justify-center bg-gray-50 rounded-xl p-4">
-            <img id="barcode-img-tag" src="" alt="バーコード" class="max-h-72 object-contain rounded">
-        </div>
-        <p class="text-xs text-gray-500">レジスタッフにご提示ください</p>
-        <button onclick="closeBarcodeModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 rounded-xl text-xs transition">閉じる</button>
-    </div>
-</div>
-
-<!-- 優待消化カレンダーモーダル -->
-<div id="schedule-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
-        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
-            <h3 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-calendar-days text-indigo-600 mr-1.5"></i>優待消化カレンダー (有効期限別)</h3>
-            <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
-        </div>
-        <div id="schedule-list" class="space-y-3 overflow-y-auto flex-1 pr-1"></div>
-        <div class="pt-4 border-t border-gray-100 mt-3 shrink-0 flex justify-end">
-            <button onclick="closeScheduleModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
-        </div>
-    </div>
-</div>
-
 <!-- 使い切り履歴モーダル -->
 <div id="history-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
@@ -255,8 +200,12 @@ input, select, textarea {
             <h3 class="font-bold text-lg text-gray-800">使い切り履歴</h3>
             <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
-        <div id="history-list" class="space-y-2.5 overflow-y-auto flex-1 pr-1"></div>
-        <div id="history-empty" class="hidden text-center py-10 text-gray-400 text-sm">使い切った履歴はまだありません</div>
+        <div id="history-list" class="space-y-2.5 overflow-y-auto flex-1 pr-1">
+            <!-- 履歴アイテム -->
+        </div>
+        <div id="history-empty" class="hidden text-center py-10 text-gray-400 text-sm">
+            使い切った履歴はまだありません
+        </div>
         <div class="pt-4 border-t border-gray-100 mt-3 shrink-0 flex justify-end">
             <button onclick="closeHistoryModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
         </div>
@@ -336,39 +285,7 @@ const db = firebase.firestore();
 const docRef = db.collection("yutaiWallet").doc("sharedData");
 
 let items = [];
-let currentFilterType = 'cat';
-let currentFilterValue = 'すべて';
-
-const categoryStyles = {
-    '食事': {
-        bgIcon: 'bg-orange-100 text-orange-600',
-        badgeCat: 'bg-orange-50 text-orange-700 border-orange-200',
-        borderAccent: 'border-l-4 border-l-orange-500',
-        summaryBg: 'bg-gradient-to-br from-orange-500 to-orange-700 text-white',
-        summaryText: 'text-orange-100'
-    },
-    '買い物': {
-        bgIcon: 'bg-emerald-100 text-emerald-600',
-        badgeCat: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        borderAccent: 'border-l-4 border-l-emerald-500',
-        summaryBg: 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white',
-        summaryText: 'text-emerald-100'
-    },
-    'サービス': {
-        bgIcon: 'bg-sky-100 text-sky-600',
-        badgeCat: 'bg-sky-50 text-sky-700 border-sky-200',
-        borderAccent: 'border-l-4 border-l-sky-500',
-        summaryBg: 'bg-gradient-to-br from-sky-500 to-sky-700 text-white',
-        summaryText: 'text-sky-100'
-    },
-    'その他': {
-        bgIcon: 'bg-purple-100 text-purple-600',
-        badgeCat: 'bg-purple-50 text-purple-700 border-purple-200',
-        borderAccent: 'border-l-4 border-l-purple-500',
-        summaryBg: 'bg-gradient-to-br from-purple-500 to-purple-700 text-white',
-        summaryText: 'text-purple-100'
-    }
-};
+let currentCategory = 'すべて';
 
 docRef.onSnapshot((doc) => {
     const statusEl = document.getElementById('sync-status');
@@ -387,7 +304,6 @@ docRef.onSnapshot((doc) => {
                 unit: '円',
                 expiryDate: new Date(Date.now() + 12*86400000).toISOString().split('T')[0],
                 url: 'https://www.yoshinoya.com/',
-                barcodeImg: '',
                 memo: 'テイクアウトでも利用可能。',
                 isCompleted: false,
                 rightsMonth: '2月/8月',
@@ -396,7 +312,6 @@ docRef.onSnapshot((doc) => {
         ];
         saveToCloud();
     }
-    updateDynamicFilterTabs();
     renderList();
     setTimeout(() => {
         statusEl.style.display = 'none';
@@ -416,54 +331,21 @@ function saveToCloud() {
 
 function saveAndRender() {
     saveToCloud();
-    updateDynamicFilterTabs();
     renderList();
 }
 
-function setFilter(type, val) {
-    currentFilterType = type;
-    currentFilterValue = val;
-    updateDynamicFilterTabs();
-    renderList();
-}
-
-function updateDynamicFilterTabs() {
-    const container = document.getElementById('filter-tabs-container');
-    
-    // それぞれのタブがアクティブかどうかの判定を完全に独立させる
-    const isAll = (currentFilterType === 'cat' && currentFilterValue === 'すべて');
-    const isFood = (currentFilterType === 'cat' && currentFilterValue === '食事');
-    const isShop = (currentFilterType === 'cat' && currentFilterValue === '買い物');
-    const isService = (currentFilterType === 'cat' && currentFilterValue === 'サービス');
-    const isOther = (currentFilterType === 'cat' && currentFilterValue === 'その他');
-    const isNear = (currentFilterType === 'expiry' && currentFilterValue === 'near');
-
-    const defaultButtonsHTML = `
-        <button onclick="setFilter('cat', 'すべて')" id="filter-すべて" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isAll ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">すべて</button>
-        <button onclick="setFilter('cat', '食事')" id="filter-食事" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isFood ? 'bg-orange-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">食事</button>
-        <button onclick="setFilter('cat', '買い物')" id="filter-買い物" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isShop ? 'bg-emerald-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">買い物</button>
-        <button onclick="setFilter('cat', 'サービス')" id="filter-サービス" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isService ? 'bg-sky-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">サービス</button>
-        <button onclick="setFilter('cat', 'その他')" id="filter-その他" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isOther ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">その他</button>
-        <span class="text-gray-300 self-center">|</span>
-        <button onclick="setFilter('expiry', 'near')" id="filter-near" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${isNear ? 'bg-orange-500 text-white' : 'bg-white text-orange-600 border border-orange-200'} shadow-sm transition"><i class="fa-solid fa-triangle-exclamation mr-1"></i>30日以内</button>
-    `;
-    
-    const activeItems = items.filter(i => !i.isCompleted && i.expiryDate);
-    const yearMonths = [...new Set(activeItems.map(i => i.expiryDate.substring(0, 7)))].sort();
-    
-    let monthButtonsHTML = '';
-    if (yearMonths.length > 0) {
-        monthButtonsHTML += `<span class="text-gray-300 self-center">|</span>`;
-        yearMonths.forEach(ym => {
-            const [y, m] = ym.split('-');
-            const label = `${y}年${parseInt(m)}月`;
-            const isActive = (currentFilterType === 'month' && currentFilterValue === ym);
-            const activeClass = isActive ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200';
-            monthButtonsHTML += `<button onclick="setFilter('month', '${ym}')" id="filter-${ym}" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${activeClass} shadow-sm transition"><i class="fa-regular fa-calendar mr-1"></i>${label}期限</button>`;
-        });
+function setCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+    });
+    const activeBtn = document.getElementById('cat-' + cat);
+    if (activeBtn) {
+        activeBtn.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+        activeBtn.classList.add('bg-indigo-600', 'text-white');
     }
-    
-    container.innerHTML = defaultButtonsHTML + monthButtonsHTML;
+    renderList();
 }
 
 function getDaysRemaining(expiryStr) {
@@ -483,16 +365,7 @@ function renderList() {
 
     let filtered = items.filter(item => {
         if (item.isCompleted) return false;
-        
-        if (currentFilterType === 'cat' && currentFilterValue !== 'すべて') {
-            if (item.categoryName !== currentFilterValue) return false;
-        } else if (currentFilterType === 'expiry' && currentFilterValue === 'near') {
-            const days = getDaysRemaining(item.expiryDate);
-            if (days < 0 || days > 30) return false;
-        } else if (currentFilterType === 'month') {
-            if (!item.expiryDate || !item.expiryDate.startsWith(currentFilterValue)) return false;
-        }
-
+        if (currentCategory !== 'すべて' && item.categoryName !== currentCategory) return false;
         if (searchQuery) {
             return item.companyName.toLowerCase().includes(searchQuery) ||
                    (item.memo && item.memo.toLowerCase().includes(searchQuery));
@@ -516,47 +389,14 @@ function renderList() {
     });
 
     const activeItems = items.filter(i => !i.isCompleted);
-    let summaryItems = activeItems;
-    if (currentFilterType === 'cat' && currentFilterValue !== 'すべて') {
-        summaryItems = activeItems.filter(i => i.categoryName === currentFilterValue);
-    } else if (currentFilterType === 'expiry' && currentFilterValue === 'near') {
-        summaryItems = activeItems.filter(i => {
-            const d = getDaysRemaining(i.expiryDate);
-            return d >= 0 && d <= 30;
-        });
-    } else if (currentFilterType === 'month') {
-        summaryItems = activeItems.filter(i => i.expiryDate && i.expiryDate.startsWith(currentFilterValue));
-    }
+    const summaryItems = currentCategory === 'すべて' 
+        ? activeItems 
+        : activeItems.filter(i => i.categoryName === currentCategory);
 
     const activeYen = summaryItems.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
     const activeTickets = summaryItems.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
     
-    let titlePrefix = '優待総額';
-    let summaryCardClass = 'bg-gradient-to-br from-indigo-500 to-indigo-700 text-white';
-    let summaryTextClass = 'text-indigo-200';
-
-    if (currentFilterType === 'cat' && currentFilterValue !== 'すべて') {
-        titlePrefix = `${currentFilterValue}優待総額`;
-        const st = categoryStyles[currentFilterValue];
-        if (st) {
-            summaryCardClass = st.summaryBg;
-            summaryTextClass = st.summaryText;
-        }
-    } else if (currentFilterType === 'expiry') {
-        titlePrefix = '期限間近優待総額';
-        summaryCardClass = 'bg-gradient-to-br from-orange-500 to-red-600 text-white';
-        summaryTextClass = 'text-orange-200';
-    } else if (currentFilterType === 'month') {
-        const [y, m] = currentFilterValue.split('-');
-        titlePrefix = `${y}年${parseInt(m)}月期限総額`;
-        summaryCardClass = 'bg-gradient-to-br from-teal-500 to-cyan-700 text-white';
-        summaryTextClass = 'text-teal-100';
-    }
-
-    const summaryCardEl = document.getElementById('summary-card');
-    summaryCardEl.className = `ios-card p-5 ${summaryCardClass} shadow-lg transition-colors duration-300`;
-    document.getElementById('summary-title').className = `text-xs uppercase tracking-wider ${summaryTextClass} font-medium`;
-    document.getElementById('summary-title').textContent = titlePrefix;
+    document.getElementById('summary-title').textContent = currentCategory === 'すべて' ? '優待総額' : `${currentCategory}優待総額`;
     document.getElementById('total-balance').textContent = activeYen > 0 ? '¥' + activeYen.toLocaleString() + (activeTickets > 0 ? ` / ${activeTickets}枚` : '') : (activeTickets > 0 ? `${activeTickets}枚` : '¥0');
     document.getElementById('active-count').textContent = '登録 ' + summaryItems.length + '件';
     
@@ -588,26 +428,20 @@ function renderList() {
         else if (item.categoryName === 'サービス') iconName = 'concierge-bell';
         else if (item.categoryName === 'その他') iconName = 'gift';
 
-        const style = categoryStyles[item.categoryName] || categoryStyles['その他'];
-
         const html = `
-            <div class="ios-card p-3.5 border border-gray-100 ${style.borderAccent} flex items-center justify-between space-x-2">
+            <div class="ios-card p-3.5 border border-gray-100 flex items-center justify-between space-x-2">
                 <div class="flex items-center space-x-2.5 min-w-0 flex-1">
                     <button onclick="toggleFavorite('${item.id}')" class="text-base focus:outline-none shrink-0">
                         <i class="fa-solid fa-star ${item.isFavorite ? 'text-yellow-400' : 'text-gray-300'}"></i>
                     </button>
-                    <div class="w-8 h-8 rounded-full ${style.bgIcon} flex items-center justify-center shrink-0 text-xs">
+                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0 text-xs">
                         <i class="fa-solid fa-${iconName}"></i>
                     </div>
                     <div class="min-w-0 flex-1 pr-1">
-                        <div class="flex items-center space-x-1.5">
-                            <h4 class="font-bold text-gray-900 text-sm truncate">${escapeHtml(item.companyName)}</h4>
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${style.badgeCat} shrink-0">${escapeHtml(item.categoryName)}</span>
-                        </div>
+                        <h4 class="font-bold text-gray-900 text-sm truncate">${escapeHtml(item.companyName)}</h4>
                         <div class="flex items-center space-x-1.5 mt-0.5 text-[11px] text-gray-500 font-medium">
                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${badgeClass}">${badgeText}</span>
                             <span class="truncate">${item.expiryDate}</span>
-                            ${item.rightsMonth ? `<span class="text-[9px] bg-gray-100 text-gray-600 px-1 rounded">権利:${escapeHtml(item.rightsMonth)}</span>` : ''}
                         </div>
                     </div>
                 </div>
@@ -615,7 +449,6 @@ function renderList() {
                     <div>
                         <div class="text-sm font-extrabold text-gray-900">${item.remainingAmount}${item.unit}</div>
                         <div class="flex items-center justify-end space-x-1 mt-1">
-                            ${item.barcodeImg ? `<button onclick="openBarcodeModal('${escapeHtml(item.barcodeImg)}', '${escapeHtml(item.companyName)}')" class="p-1 px-1.5 bg-emerald-50 text-emerald-600 rounded text-xs" title="画像・バーコードを表示"><i class="fa-solid fa-qrcode text-[10px]"></i></button>` : ''}
                             ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" class="p-1 px-1.5 bg-blue-50 text-blue-600 rounded text-xs" title="関連URLを開く"><i class="fa-solid fa-link text-[10px]"></i></a>` : ''}
                             <button onclick="editItem('${item.id}')" class="p-1 px-1.5 bg-gray-100 text-gray-600 rounded text-xs" title="編集"><i class="fa-solid fa-pen text-[10px]"></i></button>
                         </div>
@@ -653,9 +486,6 @@ function openModal() {
     document.getElementById('item-id').value = '';
     document.getElementById('modal-title').textContent = '株主優待の新規登録';
     document.getElementById('delete-btn-container').classList.add('hidden');
-    document.getElementById('item-barcode-img').value = '';
-    document.getElementById('image-preview-container').classList.add('hidden');
-    document.getElementById('image-preview').src = '';
     const defaultDate = new Date();
     defaultDate.setMonth(defaultDate.getMonth() + 6);
     document.getElementById('item-expiry').value = defaultDate.toISOString().split('T')[0];
@@ -673,17 +503,7 @@ function editItem(id) {
     document.getElementById('item-category').value = item.categoryName;
     document.getElementById('item-rights').value = item.rightsMonth || '';
     document.getElementById('item-url').value = item.url || '';
-    document.getElementById('item-barcode-img').value = item.barcodeImg || '';
     document.getElementById('item-memo').value = item.memo || '';
-    
-    if (item.barcodeImg) {
-        document.getElementById('image-preview').src = item.barcodeImg;
-        document.getElementById('image-preview-container').classList.remove('hidden');
-    } else {
-        document.getElementById('image-preview-container').classList.add('hidden');
-        document.getElementById('image-preview').src = '';
-    }
-
     document.getElementById('modal-title').textContent = '株主優待の編集';
     document.getElementById('delete-btn-container').classList.remove('hidden');
     document.getElementById('benefit-modal').classList.remove('hidden');
@@ -691,60 +511,6 @@ function editItem(id) {
 
 function closeModal() {
     document.getElementById('benefit-modal').classList.add('hidden');
-}
-
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800;
-            const MAX_HEIGHT = 800;
-            let width = img.width;
-            let height = img.height;
-            if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
-            } else {
-                if (height > MAX_HEIGHT) {
-                    width *= MAX_HEIGHT / height;
-                    height = MAX_HEIGHT;
-                }
-            }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            document.getElementById('item-barcode-img').value = dataUrl;
-            document.getElementById('image-preview').src = dataUrl;
-            document.getElementById('image-preview-container').classList.remove('hidden');
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
-
-function clearImage() {
-    document.getElementById('item-barcode-img').value = '';
-    document.getElementById('image-preview-container').classList.add('hidden');
-    document.getElementById('image-preview').src = '';
-    document.getElementById('item-image-file').value = '';
-}
-
-function openBarcodeModal(imgUrl, companyName) {
-    document.getElementById('barcode-title').textContent = companyName + ' 優待券・バーコード';
-    document.getElementById('barcode-img-tag').src = imgUrl;
-    document.getElementById('barcode-modal').classList.remove('hidden');
-}
-
-function closeBarcodeModal() {
-    document.getElementById('barcode-modal').classList.add('hidden');
 }
 
 function deleteCurrentItem() {
@@ -756,70 +522,6 @@ function deleteCurrentItem() {
         saveAndRender();
         closeModal();
     }
-}
-
-// 優待消化カレンダー（有効期限ベースの年間・月別スケジュール）
-function openScheduleModal() {
-    const scheduleList = document.getElementById('schedule-list');
-    scheduleList.innerHTML = '';
-    
-    const activeItems = items.filter(i => !i.isCompleted && i.expiryDate);
-    
-    if (activeItems.length === 0) {
-        scheduleList.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">有効期限のある有効な優待はありません</div>`;
-        document.getElementById('schedule-modal').classList.remove('hidden');
-        return;
-    }
-
-    const grouped = {};
-    activeItems.forEach(item => {
-        const ym = item.expiryDate.substring(0, 7);
-        if (!grouped[ym]) grouped[ym] = [];
-        grouped[ym].push(item);
-    });
-
-    const sortedYM = Object.keys(grouped).sort();
-
-    sortedYM.forEach(ym => {
-        const [y, m] = ym.split('-');
-        const monthList = grouped[ym];
-        
-        const yenTotal = monthList.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
-        const ticketTotal = monthList.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
-        const totalStr = yenTotal > 0 ? `¥${yenTotal.toLocaleString()}` + (ticketTotal > 0 ? ` / ${ticketTotal}枚` : '') : `${ticketTotal}枚`;
-
-        let itemsHtml = '';
-        monthList.forEach(item => {
-            itemsHtml += `
-                <div class="flex justify-between items-center bg-white p-2.5 rounded-lg border border-gray-100 text-xs">
-                    <div class="min-w-0 flex-1 pr-2">
-                        <span class="font-bold text-gray-800 truncate block">${escapeHtml(item.companyName)}</span>
-                        <span class="text-[10px] text-gray-400">期限: ${item.expiryDate}</span>
-                    </div>
-                    <span class="font-bold text-indigo-600 shrink-0">${item.remainingAmount}${item.unit}</span>
-                </div>
-            `;
-        });
-
-        const monthCard = `
-            <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-2">
-                <div class="flex items-center justify-between border-b border-gray-200 pb-2">
-                    <h4 class="font-bold text-xs text-indigo-700 uppercase"><i class="fa-regular fa-calendar-alt mr-1.5"></i>${y}年${parseInt(m)}月 期限 (計 ${totalStr})</h4>
-                    <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">${monthList.length}件</span>
-                </div>
-                <div class="space-y-1.5">
-                    ${itemsHtml}
-                </div>
-            </div>
-        `;
-        scheduleList.insertAdjacentHTML('beforeend', monthCard);
-    });
-    
-    document.getElementById('schedule-modal').classList.remove('hidden');
-}
-
-function closeScheduleModal() {
-    document.getElementById('schedule-modal').classList.add('hidden');
 }
 
 function openHistoryModal() {
@@ -841,7 +543,7 @@ function openHistoryModal() {
                     </div>
                     <div class="flex items-center space-x-1.5 shrink-0">
                         <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">使い切り</span>
-                        <button onclick="restoreItem('${item.id}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap">戻す</button>
+                        <button onclick="restoreItem('${item.id}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap" title="未完了に戻す">戻す</button>
                     </div>
                 </div>
             `;
@@ -897,7 +599,6 @@ function saveBenefit(e) {
     const categoryName = document.getElementById('item-category').value;
     const rightsMonth = document.getElementById('item-rights').value;
     const url = document.getElementById('item-url').value;
-    const barcodeImg = document.getElementById('item-barcode-img').value;
     const memo = document.getElementById('item-memo').value;
 
     const existingIdx = items.findIndex(i => i.id === id);
@@ -913,7 +614,7 @@ function saveBenefit(e) {
         id, companyName, categoryName,
         remainingAmount: remainingAmount,
         initialAmount: amount,
-        unit, expiryDate, url, barcodeImg, memo,
+        unit, expiryDate, url, memo,
         isCompleted: remainingAmount === 0,
         rightsMonth, isFavorite: existingIdx >= 0 ? items[existingIdx].isFavorite : false
     };
