@@ -50,14 +50,14 @@ input, select, textarea {
             <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布 (クラウド同期)</h1>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0">
-            <button onclick="openScheduleModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="権利月スケジュール">
+            <button onclick="openScheduleModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="優待消化カレンダー">
                 <i class="fa-solid fa-calendar-days"></i>
-            </button>
-            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="データ管理・設定">
-                <i class="fa-solid fa-gear"></i>
             </button>
             <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="お会計シミュレーター">
                 <i class="fa-solid fa-calculator"></i>
+            </button>
+            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="データ管理・設定">
+                <i class="fa-solid fa-gear"></i>
             </button>
             <button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1">
                 <i class="fa-solid fa-plus text-[10px]"></i>
@@ -234,11 +234,11 @@ input, select, textarea {
     </div>
 </div>
 
-<!-- 権利月スケジュールモーダル -->
+<!-- 優待消化カレンダーモーダル -->
 <div id="schedule-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
         <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
-            <h3 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-calendar-days text-indigo-600 mr-1.5"></i>権利確定月スケジュール</h3>
+            <h3 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-calendar-days text-indigo-600 mr-1.5"></i>優待消化カレンダー (有効期限別)</h3>
             <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
         <div id="schedule-list" class="space-y-3 overflow-y-auto flex-1 pr-1"></div>
@@ -776,37 +776,58 @@ function deleteCurrentItem() {
     }
 }
 
+// 優待消化カレンダー（有効期限ベースの年間・月別スケジュール）
 function openScheduleModal() {
     const scheduleList = document.getElementById('schedule-list');
     scheduleList.innerHTML = '';
     
-    const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+    // 未完了の優待から有効期限のあるものを抽出
+    const activeItems = items.filter(i => !i.isCompleted && i.expiryDate);
     
-    months.forEach(m => {
-        const matchingItems = items.filter(i => {
-            if (!i.rightsMonth) return false;
-            return i.rightsMonth === m || i.rightsMonth.includes(m);
-        });
+    if (activeItems.length === 0) {
+        scheduleList.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">有効期限のある有効な優待はありません</div>`;
+        document.getElementById('schedule-modal').classList.remove('hidden');
+        return;
+    }
+
+    // 年月ごと（例: "2026-10"）にグループ分け
+    const grouped = {};
+    activeItems.forEach(item => {
+        const ym = item.expiryDate.substring(0, 7); // "YYYY-MM"
+        if (!grouped[ym]) grouped[ym] = [];
+        grouped[ym].push(item);
+    });
+
+    // 年月を古い順（近い順）にソート
+    const sortedYM = Object.keys(grouped).sort();
+
+    sortedYM.forEach(ym => {
+        const [y, m] = ym.split('-');
+        const monthList = grouped[ym];
         
+        // その月の合計金額・枚数を計算
+        const yenTotal = monthList.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+        const ticketTotal = monthList.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+        const totalStr = yenTotal > 0 ? `¥${yenTotal.toLocaleString()}` + (ticketTotal > 0 ? ` / ${ticketTotal}枚` : '') : `${ticketTotal}枚`;
+
         let itemsHtml = '';
-        if (matchingItems.length > 0) {
-            matchingItems.forEach(item => {
-                itemsHtml += `
-                    <div class="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100 text-xs">
-                        <span class="font-bold text-gray-800">${escapeHtml(item.companyName)}</span>
-                        <span class="text-gray-500">${item.initialAmount || item.remainingAmount}${item.unit}</span>
+        monthList.forEach(item => {
+            itemsHtml += `
+                <div class="flex justify-between items-center bg-white p-2.5 rounded-lg border border-gray-100 text-xs">
+                    <div class="min-w-0 flex-1 pr-2">
+                        <span class="font-bold text-gray-800 truncate block">${escapeHtml(item.companyName)}</span>
+                        <span class="text-[10px] text-gray-400">期限: ${item.expiryDate}</span>
                     </div>
-                `;
-            });
-        } else {
-            itemsHtml = `<p class="text-xs text-gray-400 py-1 pl-1">登録なし</p>`;
-        }
-        
+                    <span class="font-bold text-indigo-600 shrink-0">${item.remainingAmount}${item.unit}</span>
+                </div>
+            `;
+        });
+
         const monthCard = `
-            <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
-                <div class="flex items-center justify-between border-b border-gray-200 pb-1.5">
-                    <h4 class="font-bold text-xs text-indigo-700 uppercase"><i class="fa-regular fa-calendar-check mr-1"></i>${m}末 権利確定</h4>
-                    <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">${matchingItems.length}銘柄</span>
+            <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-2">
+                <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+                    <h4 class="font-bold text-xs text-indigo-700 uppercase"><i class="fa-regular fa-calendar-alt mr-1.5"></i>${y}年${parseInt(m)}月 期限 (計 ${totalStr})</h4>
+                    <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">${monthList.length}件</span>
                 </div>
                 <div class="space-y-1.5">
                     ${itemsHtml}
