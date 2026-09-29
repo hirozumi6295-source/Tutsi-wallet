@@ -47,7 +47,7 @@ input, select, textarea {
     <div class="max-w-md mx-auto px-3 py-2.5 flex justify-between items-center">
         <div class="flex items-center space-x-1.5 min-w-0 pr-1">
             <i class="fa-solid fa-wallet text-base shrink-0"></i>
-            <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布</h1>
+            <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布 (クラウド同期)</h1>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0">
             <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="データ管理・設定">
@@ -95,8 +95,7 @@ input, select, textarea {
             <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition">すべて</button>
             <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">食事</button>
             <button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">買い物</button>
-            <button onclick="setCategory('チケット')" id="cat-チケット" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">チケット</button>
-            <button onclick="setCategory('ギフト')" id="cat-ギフト" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">ギフト</button>
+            <button onclick="setCategory('サービス')" id="cat-サービス" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">サービス</button>
             <button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">その他</button>
         </div>
     </section>
@@ -160,8 +159,7 @@ input, select, textarea {
                     <select id="item-category" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="食事">食事</option>
                         <option value="買い物">買い物</option>
-                        <option value="チケット">チケット</option>
-                        <option value="ギフト">ギフト</option>
+                        <option value="サービス">サービス</option>
                         <option value="その他">その他</option>
                     </select>
                 </div>
@@ -425,6 +423,11 @@ function renderList() {
 
         const actionText = item.unit === '円' ? '-500円' : '-1枚';
 
+        let iconName = 'utensils';
+        if (item.categoryName === '買い物') iconName = 'cart-shopping';
+        else if (item.categoryName === 'サービス') iconName = 'concierge-bell';
+        else if (item.categoryName === 'その他') iconName = 'gift';
+
         const html = `
             <div class="ios-card p-3.5 border border-gray-100 flex items-center justify-between space-x-2">
                 <div class="flex items-center space-x-2.5 min-w-0 flex-1">
@@ -432,7 +435,7 @@ function renderList() {
                         <i class="fa-solid fa-star ${item.isFavorite ? 'text-yellow-400' : 'text-gray-300'}"></i>
                     </button>
                     <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0 text-xs">
-                        <i class="fa-solid fa-${item.categoryName === '食事' ? 'utensils' : (item.categoryName === '買い物' ? 'cart-shopping' : (item.categoryName === 'チケット' ? 'ticket' : 'gift'))}"></i>
+                        <i class="fa-solid fa-${iconName}"></i>
                     </div>
                     <div class="min-w-0 flex-1 pr-1">
                         <h4 class="font-bold text-gray-900 text-sm truncate">${escapeHtml(item.companyName)}</h4>
