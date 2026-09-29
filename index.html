@@ -90,13 +90,13 @@ input, select, textarea {
                 oninput="renderList()">
         </div>
         
-        <!-- カテゴリフィルター -->
+        <!-- カテゴリフィルター (モダン・ピルスタイル) -->
         <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
-            <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition">すべて</button>
-            <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">食事</button>
-            <button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">買い物</button>
-            <button onclick="setCategory('サービス')" id="cat-サービス" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">サービス</button>
-            <button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">その他</button>
+            <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition">すべて</button>
+            <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-gray-200 text-gray-700 hover:bg-gray-300 transition">食事</button>
+            <button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-gray-200 text-gray-700 hover:bg-gray-300 transition">買い物</button>
+            <button onclick="setCategory('サービス')" id="cat-サービス" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-gray-200 text-gray-700 hover:bg-gray-300 transition">サービス</button>
+            <button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-gray-200 text-gray-700 hover:bg-gray-300 transition">その他</button>
         </div>
     </section>
 
@@ -337,13 +337,13 @@ function saveAndRender() {
 function setCategory(cat) {
     currentCategory = cat;
     document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.remove('bg-indigo-600', 'text-white');
-        btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200');
+        btn.classList.remove('bg-indigo-600', 'text-white', 'font-bold');
+        btn.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300', 'font-normal');
     });
     const activeBtn = document.getElementById('cat-' + cat);
     if (activeBtn) {
-        activeBtn.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200');
-        activeBtn.classList.add('bg-indigo-600', 'text-white');
+        activeBtn.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300', 'font-normal');
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'font-bold');
     }
     renderList();
 }
