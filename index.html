@@ -430,7 +430,7 @@ function setFilter(type, val) {
 function updateDynamicFilterTabs() {
     const container = document.getElementById('filter-tabs-container');
     
-    // 各ボタンの判定・アクティブスタイル生成
+    // 各タブの選択状態を個別の変数で正確に判定
     const isAll = (currentFilterType === 'cat' && currentFilterValue === 'すべて');
     const isFood = (currentFilterType === 'cat' && currentFilterValue === '食事');
     const isShop = (currentFilterType === 'cat' && currentFilterValue === '買い物');
@@ -848,7 +848,7 @@ function openHistoryModal() {
             historyList.insertAdjacentHTML('beforeend', html);
         });
     }
-    document.getElementById('history-modal').classList.add('hidden');
+    document.getElementById('history-modal').classList.remove('hidden');
 }
 
 function closeHistoryModal() {
