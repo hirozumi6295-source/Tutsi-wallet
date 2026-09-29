@@ -38,25 +38,25 @@ input, select, textarea {
 <body class="bg-gray-100 min-h-screen pb-24">
 
 <!-- 同期ステータス表示用バナー -->
-<div id="sync-status" class="bg-indigo-600 text-indigo-100 text-center text-xs py-1 px-4">
+<div id="sync-status" class="bg-indigo-600 text-indigo-100 text-center text-xs py-1 px-4 transition-colors duration-300">
     <i class="fa-solid fa-rotate fa-spin mr-1"></i> クラウドと接続中...
 </div>
 
 <!-- ヘッダー -->
-<header class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md">
+<header id="app-header" class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md transition-colors duration-300">
     <div class="max-w-md mx-auto px-3 py-2.5 flex justify-between items-center">
         <div class="flex items-center space-x-1.5 min-w-0 pr-1">
             <i class="fa-solid fa-wallet text-base shrink-0"></i>
             <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布 (クラウド同期)</h1>
         </div>
         <div class="flex items-center space-x-1.5 shrink-0">
-            <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="データ管理・設定">
+            <button onclick="openSettingsModal()" class="bg-white/25 hover:bg-white/35 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shadow-sm" title="データ管理・設定">
                 <i class="fa-solid fa-gear"></i>
             </button>
-            <button onclick="openCalcModal()" class="bg-white/20 hover:bg-white/30 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center" title="お会計シミュレーター">
+            <button onclick="openCalcModal()" class="bg-white/25 hover:bg-white/35 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shadow-sm" title="お会計シミュレーター">
                 <i class="fa-solid fa-calculator"></i>
             </button>
-            <button onclick="openModal()" class="bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1">
+            <button onclick="openModal()" class="bg-white/25 hover:bg-white/35 text-white px-2.5 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1 shadow-sm">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>追加</span>
             </button>
@@ -67,15 +67,15 @@ input, select, textarea {
 <!-- メインコンテナ -->
 <main class="max-w-md mx-auto px-4 py-4 space-y-4">
     <!-- 総残高サマリー -->
-    <section class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg">
-        <p id="summary-title" class="text-xs uppercase tracking-wider text-indigo-200 font-medium">優待総額</p>
+    <section id="summary-card" class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg transition-all duration-300">
+        <p id="summary-title" class="text-xs uppercase tracking-wider text-indigo-100 font-medium">優待総額</p>
         <div class="flex items-baseline justify-between mt-1">
             <h2 id="total-balance" class="text-3xl font-extrabold tracking-tight">¥0</h2>
-            <span id="active-count" class="text-xs bg-indigo-800/60 px-2.5 py-1 rounded-full text-indigo-100 font-medium">登録 0件</span>
+            <span id="active-count" class="text-xs bg-black/20 px-2.5 py-1 rounded-full text-white font-medium backdrop-blur-sm">登録 0件</span>
         </div>
-        <div class="mt-4 pt-3 border-t border-indigo-400/30 flex justify-between text-xs text-indigo-100">
+        <div id="summary-footer" class="mt-4 pt-3 border-t border-white/20 flex justify-between text-xs text-indigo-100 transition-colors duration-300">
             <div>期限間近 (30日以内): <span id="near-expiry-count" class="font-bold text-white">0件</span></div>
-            <div>使い切り履歴: <button onclick="openHistoryModal()" class="underline font-bold text-white hover:text-indigo-200"><span id="used-count">0件</span></button></div>
+            <div>使い切り履歴: <button onclick="openHistoryModal()" class="underline font-bold text-white hover:opacity-80"><span id="used-count">0件</span></button></div>
         </div>
     </section>
 
@@ -86,17 +86,17 @@ input, select, textarea {
                 <i class="fa-solid fa-search"></i>
             </span>
             <input type="text" id="search-input" placeholder="銘柄名、メモで検索..." 
-                class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-colors"
                 oninput="renderList()">
         </div>
         
-        <!-- カテゴリフィルター (モダン・ピルスタイル) -->
+        <!-- カテゴリタブ（data属性にカラー情報を保持） -->
         <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
-            <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition">すべて</button>
-            <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-gray-200 text-gray-700 hover:bg-gray-300 transition">食事</button>
-            <button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-gray-200 text-gray-700 hover:bg-gray-300 transition">買い物</button>
-            <button onclick="setCategory('サービス')" id="cat-サービス" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-gray-200 text-gray-700 hover:bg-gray-300 transition">サービス</button>
-            <button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-gray-200 text-gray-700 hover:bg-gray-300 transition">その他</button>
+            <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition" data-color="indigo" data-bg="bg-indigo-600" data-from="from-indigo-500" data-to="to-indigo-700">すべて</button>
+            <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="orange" data-bg="bg-orange-500" data-from="from-orange-500" data-to="to-orange-600">食事</button>
+            <button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="emerald" data-bg="bg-emerald-600" data-from="from-emerald-500" data-to="to-emerald-700">買い物</button>
+            <button onclick="setCategory('サービス')" id="cat-サービス" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="sky" data-bg="bg-sky-600" data-from="from-sky-500" data-to="to-sky-700">サービス</button>
+            <button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="purple" data-bg="bg-purple-600" data-from="from-purple-500" data-to="to-purple-700">その他</button>
         </div>
     </section>
 
@@ -187,7 +187,7 @@ input, select, textarea {
 
             <div class="pt-3 flex space-x-3">
                 <button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm transition">キャンセル</button>
-                <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-md">保存する</button>
+                <button type="submit" id="modal-submit-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-md">保存する</button>
             </div>
         </form>
     </div>
@@ -220,7 +220,7 @@ input, select, textarea {
             <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
         <div class="space-y-4 text-sm text-gray-600">
-            <div class="bg-indigo-50 p-3.5 rounded-xl text-indigo-900 space-y-1">
+            <div id="settings-notice" class="bg-indigo-50 p-3.5 rounded-xl text-indigo-900 space-y-1 transition-colors duration-300">
                 <p class="font-bold text-xs"><i class="fa-solid fa-circle-info mr-1"></i> クラウド同期について</p>
                 <p class="text-xs leading-relaxed">Firebaseを通じて、iPhoneとiPadでデータが自動で同期されます。</p>
             </div>
@@ -336,15 +336,42 @@ function saveAndRender() {
 
 function setCategory(cat) {
     currentCategory = cat;
+    
+    // タブの選択状態を更新
     document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.remove('bg-indigo-600', 'text-white', 'font-bold');
-        btn.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300', 'font-normal');
+        const bgClass = btn.getAttribute('data-bg');
+        btn.classList.remove(bgClass, 'text-white', 'font-bold', 'shadow-sm');
+        btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200', 'font-semibold', 'hover:bg-gray-50');
     });
+
     const activeBtn = document.getElementById('cat-' + cat);
     if (activeBtn) {
-        activeBtn.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300', 'font-normal');
-        activeBtn.classList.add('bg-indigo-600', 'text-white', 'font-bold');
+        const bgClass = activeBtn.getAttribute('data-bg');
+        activeBtn.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200', 'font-semibold', 'hover:bg-gray-50');
+        activeBtn.classList.add(bgClass, 'text-white', 'font-bold', 'shadow-sm');
+
+        // テーマカラーに応じたグラデーション・ヘッダー・カード色の変更
+        const fromGrad = activeBtn.getAttribute('data-from');
+        const toGrad = activeBtn.getAttribute('data-to');
+        const colorName = activeBtn.getAttribute('data-color');
+
+        // ヘッダー背景色の連動
+        const headerEl = document.getElementById('app-header');
+        headerEl.className = `sticky top-0 z-40 shadow-md text-white transition-colors duration-300 bg-${colorName}-600`;
+
+        // サマリーカードのグラデーション連動
+        const summaryCard = document.getElementById('summary-card');
+        summaryCard.className = `ios-card p-5 bg-gradient-to-br ${fromGrad} ${toGrad} text-white shadow-lg transition-all duration-300`;
+
+        // 設定モーダルのアクセント背景連動
+        const settingsNotice = document.getElementById('settings-notice');
+        settingsNotice.className = `p-3.5 rounded-xl space-y-1 transition-colors duration-300 bg-${colorName}-50 text-${colorName}-900`;
+
+        // 検索窓フォーカスリング等の調整用クラス反映（必要に応じて拡張可能）
+        const searchInput = document.getElementById('search-input');
+        searchInput.className = `w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-${colorName}-500 shadow-sm transition-colors`;
     }
+
     renderList();
 }
 
@@ -412,6 +439,10 @@ function renderList() {
         emptyState.classList.add('hidden');
     }
 
+    // 現在のテーマカラーに対応するボタンの色クラスを決定
+    const activeBtnEl = document.getElementById('cat-' + currentCategory);
+    const colorKey = activeBtnEl ? activeBtnEl.getAttribute('data-color') : 'indigo';
+
     filtered.forEach(item => {
         const days = getDaysRemaining(item.expiryDate);
         let badgeClass = 'bg-blue-600 text-white';
@@ -434,7 +465,7 @@ function renderList() {
                     <button onclick="toggleFavorite('${item.id}')" class="text-base focus:outline-none shrink-0">
                         <i class="fa-solid fa-star ${item.isFavorite ? 'text-yellow-400' : 'text-gray-300'}"></i>
                     </button>
-                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0 text-xs">
+                    <div class="w-8 h-8 rounded-full bg-${colorKey}-100 flex items-center justify-center text-${colorKey}-600 shrink-0 text-xs">
                         <i class="fa-solid fa-${iconName}"></i>
                     </div>
                     <div class="min-w-0 flex-1 pr-1">
@@ -453,7 +484,7 @@ function renderList() {
                             <button onclick="editItem('${item.id}')" class="p-1 px-1.5 bg-gray-100 text-gray-600 rounded text-xs" title="編集"><i class="fa-solid fa-pen text-[10px]"></i></button>
                         </div>
                     </div>
-                    <button onclick="useAmount('${item.id}')" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-2.5 py-2 rounded-xl text-xs font-bold shadow transition flex flex-col items-center justify-center shrink-0">
+                    <button onclick="useAmount('${item.id}')" class="bg-${colorKey}-600 hover:bg-${colorKey}-700 active:scale-95 text-white px-2.5 py-2 rounded-xl text-xs font-bold shadow transition flex flex-col items-center justify-center shrink-0">
                         <i class="fa-solid fa-minus text-[10px] mb-0.5"></i>
                         <span>${actionText}</span>
                     </button>
