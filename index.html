@@ -67,13 +67,13 @@ input, select, textarea {
 <!-- メインコンテナ -->
 <main class="max-w-md mx-auto px-4 py-4 space-y-4">
     <!-- 総残高サマリー -->
-    <section class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg">
+    <section id="summary-card" class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg transition-colors duration-300">
         <p id="summary-title" class="text-xs uppercase tracking-wider text-indigo-200 font-medium">優待総額</p>
         <div class="flex items-baseline justify-between mt-1">
             <h2 id="total-balance" class="text-3xl font-extrabold tracking-tight">¥0</h2>
-            <span id="active-count" class="text-xs bg-indigo-800/60 px-2.5 py-1 rounded-full text-indigo-100 font-medium">登録 0件</span>
+            <span id="active-count" class="text-xs bg-black/20 px-2.5 py-1 rounded-full text-white font-medium">登録 0件</span>
         </div>
-        <div class="mt-4 pt-3 border-t border-indigo-400/30 flex justify-between text-xs text-indigo-100">
+        <div id="summary-footer" class="mt-4 pt-3 border-t border-white/20 flex justify-between text-xs text-indigo-100">
             <div>期限間近 (30日以内): <span id="near-expiry-count" class="font-bold text-white">0件</span></div>
             <div>使い切り履歴: <button onclick="openHistoryModal()" class="underline font-bold text-white hover:text-indigo-200"><span id="used-count">0件</span></button></div>
         </div>
@@ -109,7 +109,7 @@ input, select, textarea {
             </select>
         </div>
         <div id="benefit-list" class="space-y-2.5">
-            <!-- JavaScriptで動적生成 -->
+            <!-- JavaScriptで動的生成 -->
         </div>
         <!-- 空状態 -->
         <div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
@@ -299,27 +299,35 @@ let items = [];
 let currentFilterType = 'cat';
 let currentFilterValue = 'すべて';
 
-// カテゴリごとのカラー定義（アイコン背景、バッジ、ボーダー等のスタイリング用）
+// カテゴリごとのカラー定義（リスト用・サマリーカード用）
 const categoryStyles = {
     '食事': {
         bgIcon: 'bg-orange-100 text-orange-600',
         badgeCat: 'bg-orange-50 text-orange-700 border-orange-200',
-        borderAccent: 'border-l-4 border-l-orange-500'
+        borderAccent: 'border-l-4 border-l-orange-500',
+        summaryBg: 'bg-gradient-to-br from-orange-500 to-orange-700 text-white',
+        summaryText: 'text-orange-100'
     },
     '買い物': {
         bgIcon: 'bg-emerald-100 text-emerald-600',
         badgeCat: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        borderAccent: 'border-l-4 border-l-emerald-500'
+        borderAccent: 'border-l-4 border-l-emerald-500',
+        summaryBg: 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white',
+        summaryText: 'text-emerald-100'
     },
     'サービス': {
         bgIcon: 'bg-sky-100 text-sky-600',
         badgeCat: 'bg-sky-50 text-sky-700 border-sky-200',
-        borderAccent: 'border-l-4 border-l-sky-500'
+        borderAccent: 'border-l-4 border-l-sky-500',
+        summaryBg: 'bg-gradient-to-br from-sky-500 to-sky-700 text-white',
+        summaryText: 'text-sky-100'
     },
     'その他': {
         bgIcon: 'bg-purple-100 text-purple-600',
         badgeCat: 'bg-purple-50 text-purple-700 border-purple-200',
-        borderAccent: 'border-l-4 border-l-purple-500'
+        borderAccent: 'border-l-4 border-l-purple-500',
+        summaryBg: 'bg-gradient-to-br from-purple-500 to-purple-700 text-white',
+        summaryText: 'text-purple-100'
     }
 };
 
@@ -503,13 +511,30 @@ function renderList() {
     const activeTickets = summaryItems.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
     
     let titlePrefix = '優待総額';
-    if (currentFilterType === 'cat' && currentFilterValue !== 'すべて') titlePrefix = `${currentFilterValue}優待総額`;
-    else if (currentFilterType === 'expiry') titlePrefix = '期限間近優待総額';
-    else if (currentFilterType === 'month') {
+    let summaryCardClass = 'bg-gradient-to-br from-indigo-500 to-indigo-700 text-white';
+    let summaryTextClass = 'text-indigo-200';
+    let summaryBorderClass = 'border-indigo-400/30';
+
+    if (currentFilterType === 'cat' && currentFilterValue !== 'すべて') {
+        titlePrefix = `${currentFilterValue}優待総額`;
+        const st = categoryStyles[currentFilterValue];
+        if (st) {
+            summaryCardClass = st.summaryBg;
+            summaryTextClass = st.summaryText;
+        }
+    } else if (currentFilterType === 'expiry') {
+        titlePrefix = '期限間近優待総額';
+        summaryCardClass = 'bg-gradient-to-br from-orange-500 to-red-600 text-white';
+        summaryTextClass = 'text-orange-200';
+    } else if (currentFilterType === 'month') {
         const [y, m] = currentFilterValue.split('-');
         titlePrefix = `${y}年${parseInt(m)}月期限総額`;
     }
 
+    // サマリーカードの見た目を動的に切り替え
+    const summaryCardEl = document.getElementById('summary-card');
+    summaryCardEl.className = `ios-card p-5 ${summaryCardClass} shadow-lg transition-colors duration-300`;
+    document.getElementById('summary-title').className = `text-xs uppercase tracking-wider ${summaryTextClass} font-medium`;
     document.getElementById('summary-title').textContent = titlePrefix;
     document.getElementById('total-balance').textContent = activeYen > 0 ? '¥' + activeYen.toLocaleString() + (activeTickets > 0 ? ` / ${activeTickets}枚` : '') : (activeTickets > 0 ? `${activeTickets}枚` : '¥0');
     document.getElementById('active-count').textContent = '登録 ' + summaryItems.length + '件';
@@ -542,7 +567,6 @@ function renderList() {
         else if (item.categoryName === 'サービス') iconName = 'concierge-bell';
         else if (item.categoryName === 'その他') iconName = 'gift';
 
-        // カテゴリごとのカラー適用
         const style = categoryStyles[item.categoryName] || categoryStyles['その他'];
 
         const html = `
