@@ -3,46 +3,763 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>株主優待財布 - アイコン見比べプレビュー</title>
+<title>株主優待財布</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Firebase SDKの読み込み (compat版) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
 <style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f3f4f6; color: #1f2937; }
-.ios-card { background: #ffffff; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f3f4f6;
+    color: #1f2937;
+    touch-action: manipulation;
+}
+.ios-card {
+    background: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+input, select, textarea {
+    font-size: 16px !important;
+}
+@media (min-width: 640px) {
+    input, select, textarea {
+        font-size: 14px !important;
+    }
+}
 </style>
 </head>
 <body class="bg-gray-100 min-h-screen pb-24">
 
-<!-- ヘッダー（アイコン見比べ用） -->
-<header class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md">
-    <div class="max-w-md mx-auto px-3 py-3 flex flex-col space-y-2">
-        <div class="flex items-center space-x-1.5">
-            <i class="fa-solid fa-wallet text-base"></i>
-            <h1 class="font-bold text-sm tracking-tight">株主優待財布 (アイコン見比べプレビュー)</h1>
+<!-- 同期ステータス表示用バナー -->
+<div id="sync-status" class="bg-indigo-600 text-indigo-100 text-center text-xs py-1 px-4 transition-colors duration-300">
+    <i class="fa-solid fa-rotate fa-spin mr-1"></i> クラウドと接続中...
+</div>
+
+<!-- ヘッダー -->
+<header id="app-header" class="bg-indigo-600 text-white sticky top-0 z-40 shadow-md transition-colors duration-300">
+    <div class="max-w-md mx-auto px-3 py-2.5 flex justify-between items-center">
+        <div class="flex items-center space-x-1.5 min-w-0 pr-1">
+            <!-- ギフトアイコンに変更しました -->
+            <i class="fa-solid fa-gift text-base shrink-0"></i>
+            <h1 class="font-bold text-sm tracking-tight truncate">株主優待財布 (クラウド同期)</h1>
         </div>
-        <!-- ご提案中のアイコンを横一列に並べて表示 -->
-        <div class="flex items-center justify-around bg-indigo-700/60 p-2 rounded-xl text-xs overflow-x-auto">
-            <div class="flex flex-col items-center px-2"><i class="fa-solid fa-wallet text-lg mb-0.5"></i><span class="text-[10px]">wallet</span></div>
-            <div class="flex flex-col items-center px-2"><i class="fa-solid fa-sack-dollar text-lg mb-0.5"></i><span class="text-[10px]">sack-dollar</span></div>
-            <div class="flex flex-col items-center px-2"><i class="fa-solid fa-piggy-bank text-lg mb-0.5"></i><span class="text-[10px]">piggy-bank</span></div>
-            <div class="flex flex-col items-center px-2"><i class="fa-solid fa-coins text-lg mb-0.5"></i><span class="text-[10px]">coins</span></div>
-            <div class="flex flex-col items-center px-2"><i class="fa-solid fa-gift text-lg mb-0.5"></i><span class="text-[10px]">gift</span></div>
-            <div class="flex flex-col items-center px-2"><i class="fa-solid fa-ticket text-lg mb-0.5"></i><span class="text-[10px]">ticket</span></div>
-            <div class="flex flex-col items-center px-2"><i class="fa-solid fa-star text-lg mb-0.5"></i><span class="text-[10px]">star</span></div>
-            <div class="flex flex-col items-center px-2"><i class="fa-solid fa-clover text-lg mb-0.5"></i><span class="text-[10px]">clover</span></div>
+        <div class="flex items-center space-x-1.5 shrink-0">
+            <button onclick="openSettingsModal()" class="bg-white/25 hover:bg-white/35 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shadow-sm" title="データ管理・設定">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button onclick="openCalcModal()" class="bg-white/25 hover:bg-white/35 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shadow-sm" title="お会計シミュレーター">
+                <i class="fa-solid fa-calculator"></i>
+            </button>
+            <button onclick="openHelpModal()" class="bg-white/25 hover:bg-white/35 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shadow-sm" title="使い方ガイド">
+                <i class="fa-solid fa-question"></i>
+            </button>
+            <button onclick="openModal()" class="bg-white/25 hover:bg-white/35 text-white px-2.5 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1 shadow-sm">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>追加</span>
+            </button>
         </div>
     </div>
 </header>
 
-<main class="max-w-md mx-auto px-4 py-6 space-y-4">
-    <div class="ios-card p-5 text-center space-y-3">
-        <h2 class="font-bold text-base text-gray-800">💡 お気に入りのアイコンはありましたか？</h2>
-        <p class="text-xs text-gray-600 leading-relaxed">
-            上部のヘッダー内に、ご提案したアイコンをすべて並べてみました。<br>
-            「このアイコンが一番しっくりくる！」というものが決まりましたら、お気軽にお知らせください！そのアイコンに一本化した最新コードをすぐにお作りします。
-        </p>
-    </div>
+<!-- メインコンテナ -->
+<main class="max-w-md mx-auto px-4 py-4 space-y-4">
+    <!-- 総残高サマリー -->
+    <section id="summary-card" class="ios-card p-5 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-lg transition-all duration-300">
+        <p id="summary-title" class="text-xs uppercase tracking-wider text-indigo-100 font-medium">優待総額</p>
+        <div class="flex items-baseline justify-between mt-1">
+            <h2 id="total-balance" class="text-3xl font-extrabold tracking-tight">¥0</h2>
+            <span id="active-count" class="text-xs bg-black/20 px-2.5 py-1 rounded-full text-white font-medium backdrop-blur-sm">登録 0件</span>
+        </div>
+        <div id="summary-footer" class="mt-4 pt-3 border-t border-white/20 flex justify-between text-xs text-indigo-100 transition-colors duration-300">
+            <div>期限間近 (30日以内): <span id="near-expiry-count" class="font-bold text-white">0件</span></div>
+            <div>使い切り履歴: <button onclick="openHistoryModal()" class="underline font-bold text-white hover:opacity-80"><span id="used-count">0件</span></button></div>
+        </div>
+    </section>
+
+    <!-- 検索＆カテゴリタブ -->
+    <section class="space-y-3">
+        <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <i class="fa-solid fa-search"></i>
+            </span>
+            <input type="text" id="search-input" placeholder="銘柄名、メモで検索..." 
+                class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-colors"
+                oninput="renderList()">
+        </div>
+        
+        <!-- カテゴリタブ -->
+        <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
+            <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition" data-color="indigo" data-bg="bg-indigo-600" data-from="from-indigo-500" data-to="to-indigo-700">すべて</button>
+            <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="orange" data-bg="bg-orange-500" data-from="from-orange-500" data-to="to-orange-600">食事</button>
+            <button onclick="setCategory('買い物')" id="cat-買い物" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="emerald" data-bg="bg-emerald-600" data-from="from-emerald-500" data-to="to-emerald-700">買い物</button>
+            <button onclick="setCategory('サービス')" id="cat-サービス" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="sky" data-bg="bg-sky-600" data-from="from-sky-500" data-to="to-sky-700">サービス</button>
+            <button onclick="setCategory('その他')" id="cat-その他" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="purple" data-bg="bg-purple-600" data-from="from-purple-500" data-to="to-purple-700">その他</button>
+        </div>
+    </section>
+
+    <!-- リスト表示部 -->
+    <section class="space-y-3">
+        <div class="flex justify-between items-center px-1">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">優待一覧 (タップで即時消化)</h3>
+            <select id="sort-select" onchange="renderList()" class="bg-transparent text-xs text-gray-600 font-medium focus:outline-none">
+                <option value="favoriteFirst">お気に入り優先</option>
+                <option value="expiryAsc">有効期限が近い順</option>
+                <option value="amountDesc">残高が多い順</option>
+                <option value="amountAsc">残高が少ない順</option>
+                <option value="nameAsc">50音順</option>
+            </select>
+        </div>
+        <div id="benefit-list" class="space-y-2.5">
+            <!-- JavaScriptで動的生成 -->
+        </div>
+        <!-- 空状態 -->
+        <div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
+            <div class="text-gray-300 text-4xl mb-2"><i class="fa-solid fa-receipt"></i></div>
+            <p class="text-gray-600 font-medium text-sm">該当する優待はありません</p>
+        </div>
+    </section>
 </main>
 
+<!-- 新規追加・編集モーダル -->
+<div id="benefit-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+            <h3 id="modal-title" class="font-bold text-lg text-gray-800">株主優待の新規登録</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form id="benefit-form" onsubmit="saveBenefit(event)" class="space-y-4">
+            <input type="hidden" id="item-id">
+            <div>
+                <label for="item-company" class="block text-xs font-semibold text-gray-600 uppercase mb-1">銘柄名 *</label>
+                <input type="text" id="item-company" required placeholder="例: 吉野家" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="item-amount" class="block text-xs font-semibold text-gray-600 uppercase mb-1">数量・金額 *</label>
+                    <input type="number" id="item-amount" required placeholder="3000" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label for="item-unit" class="block text-xs font-semibold text-gray-600 uppercase mb-1">単位 *</label>
+                    <select id="item-unit" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="円">円 (500円単位で消化)</option>
+                        <option value="枚">枚 (1枚単位で消化)</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label for="item-expiry" class="block text-xs font-semibold text-gray-600 uppercase mb-1">有効期限 *</label>
+                <input type="date" id="item-expiry" required class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="item-category" class="block text-xs font-semibold text-gray-600 uppercase mb-1">カテゴリ</label>
+                    <select id="item-category" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="食事">食事</option>
+                        <option value="買い物">買い物</option>
+                        <option value="サービス">サービス</option>
+                        <option value="その他">その他</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="item-rights" class="block text-xs font-semibold text-gray-600 uppercase mb-1">権利確定月</label>
+                    <input type="text" id="item-rights" placeholder="例: 3月/9月" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div>
+                <label for="item-url" class="block text-xs font-semibold text-gray-600 uppercase mb-1">関連URL (任意)</label>
+                <input type="url" id="item-url" placeholder="https://www.yoshinoya.com/" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label for="item-memo" class="block text-xs font-semibold text-gray-600 uppercase mb-1">メモ</label>
+                <textarea id="item-memo" rows="2" placeholder="利用条件など" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            </div>
+            
+            <div id="delete-btn-container" class="hidden pt-2">
+                <button type="button" onclick="deleteCurrentItem()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2.5 rounded-xl text-xs transition border border-red-200 flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>この優待を完全に削除する</span>
+                </button>
+            </div>
+
+            <div class="pt-3 flex space-x-3">
+                <button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl text-sm transition">キャンセル</button>
+                <button type="submit" id="modal-submit-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-md">保存する</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 使い切り履歴モーダル -->
+<div id="history-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
+            <h3 class="font-bold text-lg text-gray-800">使い切り履歴</h3>
+            <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div id="history-list" class="space-y-2.5 overflow-y-auto flex-1 pr-1">
+            <!-- 履歴アイテム -->
+        </div>
+        <div id="history-empty" class="hidden text-center py-10 text-gray-400 text-sm">
+            使い切った履歴はまだありません
+        </div>
+        <div class="pt-4 border-t border-gray-100 mt-3 shrink-0 flex justify-end">
+            <button onclick="closeHistoryModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- 使い方ガイド（ヘルプ）モーダル -->
+<div id="help-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
+            <h3 class="font-bold text-lg text-gray-800 flex items-center">
+                <i class="fa-solid fa-circle-question text-indigo-600 mr-2"></i>使い方ガイド
+                <span class="ml-2 text-xs font-normal bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">v1.3.0</span>
+            </h3>
+            <button onclick="closeHelpModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="space-y-4 overflow-y-auto flex-1 pr-1 text-sm text-gray-600">
+            <div>
+                <h4 class="font-bold text-gray-800 text-xs uppercase tracking-wider mb-2 text-indigo-600">📌 基本的な使い方</h4>
+                <ul class="space-y-2 text-xs leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <li><strong class="text-gray-800">1. 優待の追加:</strong> 右上の「＋追加」ボタンから銘柄名、金額・枚数、有効期限、カテゴリなどを登録します。</li>
+                    <li><strong class="text-gray-800">2. 優待の消化:</strong> リストにある「-500円」や「-1枚」ボタンをタップすると残高が減り、0になると自動で使い切り履歴へ移動します。</li>
+                    <li><strong class="text-gray-800">3. カテゴリ切り替え:</strong> 上部のタブ（すべて・食事・買い物など）を選ぶと、画面全体のカラーと専用の総額が連動して切り替わります。</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-gray-800 text-xs uppercase tracking-wider mb-2 text-indigo-600">✨ 便利な機能</h4>
+                <ul class="space-y-2 text-xs leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <li><strong class="text-gray-800">⭐ お気に入り:</strong> 左側の星マークを押すと、優先的に上部に表示させることができます。</li>
+                    <li><strong class="text-gray-800">⏳ 期限アラート:</strong> 残り日数に応じてバッジの色が変化し、期限切れや期限間近を通知します（30日以内など）。</li>
+                    <li><strong class="text-gray-800">🧮 お会計シミュレーター:</strong> 電卓アイコンから、合計金額と優待充当額を入力して自払額を計算できます。</li>
+                    <li><strong class="text-gray-800">📋 使い切り履歴:</strong> 画面下の「使い切り履歴」から過去に使い切った優待の確認や、未完了への復元ができます。</li>
+                    <li><strong class="text-gray-800">☁️ クラウド自動同期:</strong> Firebaseにより、iPhoneやiPad間でデータがリアルタイムに同期されます。</li>
+                </ul>
+            </div>
+        </div>
+        <div class="pt-4 border-t border-gray-100 mt-3 shrink-0 flex justify-end">
+            <button onclick="closeHelpModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- データ管理・設定モーダル -->
+<div id="settings-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5">
+        <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+            <h3 class="font-bold text-lg text-gray-800">データ同期・設定</h3>
+            <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="space-y-4 text-sm text-gray-600">
+            <div id="settings-notice" class="bg-indigo-50 p-3.5 rounded-xl text-indigo-900 space-y-1 transition-colors duration-300">
+                <p class="font-bold text-xs"><i class="fa-solid fa-circle-info mr-1"></i> クラウド同期について</p>
+                <p class="text-xs leading-relaxed">Firebaseを通じて、iPhoneやiPad間でデータが自動で同期されます。</p>
+            </div>
+            
+            <div class="flex items-center justify-between bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                <div>
+                    <div class="text-xs font-bold text-gray-800">アプリバージョン</div>
+                    <div class="text-xs text-gray-400 mt-0.5">現在のバージョン: <span class="font-bold text-gray-600">v1.3.0</span></div>
+                </div>
+                <button onclick="openChangelogModal()" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold px-3 py-1.5 rounded-lg text-xs shadow-sm transition">
+                    変更履歴を見る
+                </button>
+            </div>
+
+            <div>
+                <button onclick="exportData()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition flex items-center justify-center space-x-2 text-xs">
+                    <i class="fa-solid fa-download"></i>
+                    <span>バックアップファイル保存 (JSON)</span>
+                </button>
+            </div>
+        </div>
+        <div class="pt-2 flex justify-end">
+            <button onclick="closeSettingsModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- 変更履歴（リリースノート）モーダル -->
+<div id="changelog-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
+            <h3 class="font-bold text-lg text-gray-800 flex items-center">
+                <i class="fa-solid fa-clock-rotate-left text-indigo-600 mr-2"></i>変更履歴 (リリースノート)
+            </h3>
+            <button onclick="closeChangelogModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="space-y-4 overflow-y-auto flex-1 pr-1 text-sm text-gray-600">
+            <div class="border-l-2 border-indigo-600 pl-3 space-y-1">
+                <div class="flex items-center space-x-2">
+                    <span class="font-bold text-indigo-600 text-sm">v1.3.0</span>
+                    <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full">最新</span>
+                </div>
+                <p class="text-xs text-gray-700 leading-relaxed">使い方ガイド（ヘルプ）モーダルの追加、およびアプリ内バージョン管理機能・変更履歴ページを実装しました。</p>
+            </div>
+            <div class="border-l-2 border-gray-300 pl-3 space-y-1">
+                <span class="font-bold text-gray-800 text-sm">v1.2.0</span>
+                <p class="text-xs text-gray-700 leading-relaxed">Firebaseクラウド自動同期機能の導入、お会計シミュレーター機能を追加しました。</p>
+            </div>
+            <div class="border-l-2 border-gray-300 pl-3 space-y-1">
+                <span class="font-bold text-gray-800 text-sm">v1.1.0</span>
+                <p class="text-xs text-gray-700 leading-relaxed">カテゴリ別のタブ切替、テーマカラー連動、お気に入り機能（優先表示）を追加しました。</p>
+            </div>
+            <div class="border-l-2 border-gray-300 pl-3 space-y-1">
+                <span class="font-bold text-gray-800 text-sm">v1.0.0</span>
+                <p class="text-xs text-gray-700 leading-relaxed">初期バージョンリリース。基本的な株主優待の登録・残高管理・消化機能を実装しました。</p>
+            </div>
+        </div>
+        <div class="pt-4 border-t border-gray-100 mt-3 shrink-0 flex justify-end">
+            <button onclick="closeChangelogModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- お会計シミュレーターモーダル -->
+<div id="calc-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+            <h3 class="font-bold text-lg text-gray-800">お会計シミュレーター</h3>
+            <button onclick="closeCalcModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label for="calc-bill" class="block text-xs font-semibold text-gray-600 uppercase mb-1">合計金額 (円)</label>
+                <input type="number" id="calc-bill" placeholder="3500" oninput="updateCalc()" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label for="calc-use" class="block text-xs font-semibold text-gray-600 uppercase mb-1">優待充当額</label>
+                <select id="calc-use" onchange="updateCalc()" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="500">500円</option>
+                    <option value="1000" selected>1,000円</option>
+                    <option value="1500">1,500円</option>
+                    <option value="2000">2,000円</option>
+                    <option value="3000">3,000円</option>
+                    <option value="5000">5,000円</option>
+                </select>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-xl space-y-2 text-sm">
+                <div class="flex justify-between"><span>合計お会計:</span> <span id="res-bill" class="font-bold">¥0</span></div>
+                <div class="flex justify-between text-orange-600"><span>優待利用:</span> <span id="res-use">- ¥1000</span></div>
+                <div class="flex justify-between pt-2 border-t border-gray-200 text-base font-bold text-green-600"><span>自腹お支払い額:</span> <span id="res-pay">¥0</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyChxbVdrx1FrNg0qETgwyUhpLwHEPqEbBA",
+    authDomain: "yutai-wallet-36143.firebaseapp.com",
+    projectId: "yutai-wallet-36143",
+    storageBucket: "yutai-wallet-36143.firebasestorage.app",
+    messagingSenderId: "191265821604",
+    appId: "1:191265821604:web:f7d93be27fb7f6c095a731",
+    measurementId: "G-R4ZN7STLF3"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const docRef = db.collection("yutaiWallet").doc("sharedData");
+
+let items = [];
+let currentCategory = 'すべて';
+
+docRef.onSnapshot((doc) => {
+    const statusEl = document.getElementById('sync-status');
+    if (doc.exists) {
+        items = doc.data().items || [];
+        statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-down mr-1"></i> クラウドと同期完了';
+        statusEl.className = "bg-green-600 text-white text-center text-xs py-1 px-4";
+    } else {
+        items = [
+            {
+                id: '1',
+                companyName: '吉野家HD',
+                categoryName: '食事',
+                remainingAmount: 3000,
+                initialAmount: 3000,
+                unit: '円',
+                expiryDate: new Date(Date.now() + 12*86400000).toISOString().split('T')[0],
+                url: 'https://www.yoshinoya.com/',
+                memo: 'テイクアウトでも利用可能。',
+                isCompleted: false,
+                rightsMonth: '2月/8月',
+                isFavorite: true
+            }
+        ];
+        saveToCloud();
+    }
+    renderList();
+    setTimeout(() => {
+        statusEl.style.display = 'none';
+    }, 3000);
+}, (error) => {
+    console.error("同期エラー: ", error);
+    const statusEl = document.getElementById('sync-status');
+    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> クラウド同期エラー';
+    statusEl.className = "bg-red-600 text-white text-center text-xs py-1 px-4";
+});
+
+function saveToCloud() {
+    docRef.set({ items: items }).catch((error) => {
+        alert('保存に失敗しました: ' + error.message);
+    });
+}
+
+function saveAndRender() {
+    saveToCloud();
+    renderList();
+}
+
+function setCategory(cat) {
+    currentCategory = cat;
+    
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        const bgClass = btn.getAttribute('data-bg');
+        btn.classList.remove(bgClass, 'text-white', 'font-bold', 'shadow-sm');
+        btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-200', 'font-semibold', 'hover:bg-gray-50');
+    });
+
+    const activeBtn = document.getElementById('cat-' + cat);
+    if (activeBtn) {
+        const bgClass = activeBtn.getAttribute('data-bg');
+        activeBtn.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200', 'font-semibold', 'hover:bg-gray-50');
+        activeBtn.classList.add(bgClass, 'text-white', 'font-bold', 'shadow-sm');
+
+        const fromGrad = activeBtn.getAttribute('data-from');
+        const toGrad = activeBtn.getAttribute('data-to');
+        const colorName = activeBtn.getAttribute('data-color');
+
+        const headerEl = document.getElementById('app-header');
+        headerEl.className = `sticky top-0 z-40 shadow-md text-white transition-colors duration-300 bg-${colorName}-600`;
+
+        const summaryCard = document.getElementById('summary-card');
+        summaryCard.className = `ios-card p-5 bg-gradient-to-br ${fromGrad} ${toGrad} text-white shadow-lg transition-all duration-300`;
+
+        const settingsNotice = document.getElementById('settings-notice');
+        settingsNotice.className = `p-3.5 rounded-xl space-y-1 transition-colors duration-300 bg-${colorName}-50 text-${colorName}-900`;
+
+        const searchInput = document.getElementById('search-input');
+        searchInput.className = `w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-${colorName}-500 shadow-sm transition-colors`;
+    }
+
+    renderList();
+}
+
+function getDaysRemaining(expiryStr) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const expiry = new Date(expiryStr);
+    expiry.setHours(0,0,0,0);
+    const diffTime = expiry - today;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+function renderList() {
+    const searchQuery = document.getElementById('search-input').value.toLowerCase();
+    const sortBy = document.getElementById('sort-select').value;
+    const listContainer = document.getElementById('benefit-list');
+    const emptyState = document.getElementById('empty-state');
+
+    let filtered = items.filter(item => {
+        if (item.isCompleted) return false;
+        if (currentCategory !== 'すべて' && item.categoryName !== currentCategory) return false;
+        if (searchQuery) {
+            return item.companyName.toLowerCase().includes(searchQuery) ||
+                   (item.memo && item.memo.toLowerCase().includes(searchQuery));
+        }
+        return true;
+    });
+
+    filtered.sort((a, b) => {
+        if (sortBy === 'favoriteFirst') {
+            if (a.isFavorite !== b.isFavorite) return b.isFavorite - a.isFavorite;
+            return new Date(a.expiryDate) - new Date(b.expiryDate);
+        } else if (sortBy === 'expiryAsc') {
+            return new Date(a.expiryDate) - new Date(b.expiryDate);
+        } else if (sortBy === 'amountDesc') {
+            return b.remainingAmount - a.remainingAmount;
+        } else if (sortBy === 'amountAsc') {
+            return a.remainingAmount - b.remainingAmount;
+        } else if (sortBy === 'nameAsc') {
+            return a.companyName.localeCompare(b.companyName, 'ja');
+        }
+    });
+
+    const activeItems = items.filter(i => !i.isCompleted);
+    const summaryItems = currentCategory === 'すべて' 
+        ? activeItems 
+        : activeItems.filter(i => i.categoryName === currentCategory);
+
+    const activeYen = summaryItems.filter(i => i.unit === '円').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+    const activeTickets = summaryItems.filter(i => i.unit === '枚').reduce((acc, cur) => acc + cur.remainingAmount, 0);
+    
+    document.getElementById('summary-title').textContent = currentCategory === 'すべて' ? '優待総額' : `${currentCategory}優待総額`;
+    document.getElementById('total-balance').textContent = activeYen > 0 ? '¥' + activeYen.toLocaleString() + (activeTickets > 0 ? ` / ${activeTickets}枚` : '') : (activeTickets > 0 ? `${activeTickets}枚` : '¥0');
+    document.getElementById('active-count').textContent = '登録 ' + summaryItems.length + '件';
+    
+    const nearExpiry = items.filter(i => !i.isCompleted && getDaysRemaining(i.expiryDate) >= 0 && getDaysRemaining(i.expiryDate) <= 30).length;
+    document.getElementById('near-expiry-count').textContent = nearExpiry + '件';
+    document.getElementById('used-count').textContent = items.filter(i => i.isCompleted).length + '件';
+
+    listContainer.innerHTML = '';
+    if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+    } else {
+        emptyState.classList.add('hidden');
+    }
+
+    const activeBtnEl = document.getElementById('cat-' + currentCategory);
+    const colorKey = activeBtnEl ? activeBtnEl.getAttribute('data-color') : 'indigo';
+
+    filtered.forEach(item => {
+        const days = getDaysRemaining(item.expiryDate);
+        let badgeClass = 'bg-blue-600 text-white';
+        let badgeText = 'あと' + days + '日';
+        if (days < 0) { badgeClass = 'bg-black text-white'; badgeText = '期限切れ'; }
+        else if (days === 0) { badgeClass = 'bg-red-600 text-white'; badgeText = '本日まで'; }
+        else if (days <= 14) { badgeClass = 'bg-red-500 text-white'; badgeText = 'あと' + days + '日'; }
+        else if (days <= 30) { badgeClass = 'bg-orange-500 text-white'; badgeText = 'あと' + days + '日'; }
+
+        const actionText = item.unit === '円' ? '-500円' : '-1枚';
+
+        let iconName = 'utensils';
+        if (item.categoryName === '買い物') iconName = 'cart-shopping';
+        else if (item.categoryName === 'サービス') iconName = 'concierge-bell';
+        else if (item.categoryName === 'その他') iconName = 'gift';
+
+        const html = `
+            <div class="ios-card p-3.5 border border-gray-100 flex items-center justify-between space-x-2">
+                <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+                    <button onclick="toggleFavorite('${item.id}')" class="text-base focus:outline-none shrink-0">
+                        <i class="fa-solid fa-star ${item.isFavorite ? 'text-yellow-400' : 'text-gray-300'}"></i>
+                    </button>
+                    <div class="w-8 h-8 rounded-full bg-${colorKey}-100 flex items-center justify-center text-${colorKey}-600 shrink-0 text-xs">
+                        <i class="fa-solid fa-${iconName}"></i>
+                    </div>
+                    <div class="min-w-0 flex-1 pr-1">
+                        <h4 class="font-bold text-gray-900 text-sm truncate">${escapeHtml(item.companyName)}</h4>
+                        <div class="flex items-center space-x-1.5 mt-0.5 text-[11px] text-gray-500 font-medium">
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${badgeClass}">${badgeText}</span>
+                            <span class="truncate">${item.expiryDate}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right shrink-0 flex items-center space-x-2.5">
+                    <div>
+                        <div class="text-sm font-extrabold text-gray-900">${item.remainingAmount}${item.unit}</div>
+                        <div class="flex items-center justify-end space-x-1 mt-1">
+                            ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" class="p-1 px-1.5 bg-blue-50 text-blue-600 rounded text-xs" title="関連URLを開く"><i class="fa-solid fa-link text-[10px]"></i></a>` : ''}
+                            <button onclick="editItem('${item.id}')" class="p-1 px-1.5 bg-gray-100 text-gray-600 rounded text-xs" title="編集"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                        </div>
+                    </div>
+                    <button onclick="useAmount('${item.id}')" class="bg-${colorKey}-600 hover:bg-${colorKey}-700 active:scale-95 text-white px-2.5 py-2 rounded-xl text-xs font-bold shadow transition flex flex-col items-center justify-center shrink-0">
+                        <i class="fa-solid fa-minus text-[10px] mb-0.5"></i>
+                        <span>${actionText}</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        listContainer.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+function toggleFavorite(id) {
+    items = items.map(i => i.id === id ? { ...i, isFavorite: !i.isFavorite } : i);
+    saveAndRender();
+}
+
+function useAmount(id) {
+    items = items.map(i => {
+        if (i.id === id) {
+            const step = i.unit === '円' ? 500 : 1;
+            const newVal = Math.max(0, i.remainingAmount - step);
+            return { ...i, remainingAmount: newVal, isCompleted: newVal === 0 };
+        }
+        return i;
+    });
+    saveAndRender();
+}
+
+function openModal() {
+    document.getElementById('benefit-form').reset();
+    document.getElementById('item-id').value = '';
+    document.getElementById('modal-title').textContent = '株主優待の新規登録';
+    document.getElementById('delete-btn-container').classList.add('hidden');
+    const defaultDate = new Date();
+    defaultDate.setMonth(defaultDate.getMonth() + 6);
+    document.getElementById('item-expiry').value = defaultDate.toISOString().split('T')[0];
+    document.getElementById('benefit-modal').classList.remove('hidden');
+}
+
+function editItem(id) {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('item-id').value = item.id;
+    document.getElementById('item-company').value = item.companyName;
+    document.getElementById('item-amount').value = item.initialAmount || item.remainingAmount;
+    document.getElementById('item-unit').value = item.unit;
+    document.getElementById('item-expiry').value = item.expiryDate;
+    document.getElementById('item-category').value = item.categoryName;
+    document.getElementById('item-rights').value = item.rightsMonth || '';
+    document.getElementById('item-url').value = item.url || '';
+    document.getElementById('item-memo').value = item.memo || '';
+    document.getElementById('modal-title').textContent = '株主優待の編集';
+    document.getElementById('delete-btn-container').classList.remove('hidden');
+    document.getElementById('benefit-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('benefit-modal').classList.add('hidden');
+}
+
+function deleteCurrentItem() {
+    const id = document.getElementById('item-id').value;
+    if (!id) return;
+    
+    if (confirm('この優待を完全に削除してもよろしいですか？')) {
+        items = items.filter(i => i.id !== id);
+        saveAndRender();
+        closeModal();
+    }
+}
+
+function openHistoryModal() {
+    const historyList = document.getElementById('history-list');
+    const historyEmpty = document.getElementById('history-empty');
+    const completedItems = items.filter(i => i.isCompleted);
+
+    historyList.innerHTML = '';
+    if (completedItems.length === 0) {
+        historyEmpty.classList.remove('hidden');
+    } else {
+        historyEmpty.classList.add('hidden');
+        completedItems.forEach(item => {
+            const html = `
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between text-sm space-x-2">
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-bold text-gray-800 text-sm truncate">${escapeHtml(item.companyName)}</h4>
+                        <div class="text-[10px] text-gray-500 mt-0.5 whitespace-nowrap truncate">初期: ${item.initialAmount || item.remainingAmount}${item.unit} / 期限: ${item.expiryDate}</div>
+                    </div>
+                    <div class="flex items-center space-x-1.5 shrink-0">
+                        <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">使い切り</span>
+                        <button onclick="restoreItem('${item.id}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap" title="未完了に戻す">戻す</button>
+                    </div>
+                </div>
+            `;
+            historyList.insertAdjacentHTML('beforeend', html);
+        });
+    }
+    document.getElementById('history-modal').classList.remove('hidden');
+}
+
+function closeHistoryModal() {
+    document.getElementById('history-modal').classList.add('hidden');
+}
+
+function restoreItem(id) {
+    items = items.map(i => {
+        if (i.id === id) {
+            const restoreAmount = i.initialAmount && i.initialAmount > 0 ? i.initialAmount : (i.unit === '円' ? 500 : 1);
+            return { ...i, remainingAmount: restoreAmount, isCompleted: false };
+        }
+        return i;
+    });
+    saveAndRender();
+    openHistoryModal();
+}
+
+function openHelpModal() { document.getElementById('help-modal').classList.remove('hidden'); }
+function closeHelpModal() { document.getElementById('help-modal').classList.add('hidden'); }
+
+function openSettingsModal() { document.getElementById('settings-modal').classList.remove('hidden'); }
+function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
+
+function openChangelogModal() { document.getElementById('changelog-modal').classList.remove('hidden'); }
+function closeChangelogModal() { document.getElementById('changelog-modal').classList.add('hidden'); }
+
+function exportData() {
+    try {
+        const jsonStr = JSON.stringify(items, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.href = url;
+        downloadAnchor.download = "yutai_wallet_backup_" + new Date().toISOString().split('T')[0] + ".json";
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        document.body.removeChild(downloadAnchor);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (err) {
+        alert('エクスポートに失敗しました: ' + err.message);
+    }
+}
+
+function saveBenefit(e) {
+    e.preventDefault();
+    const id = document.getElementById('item-id').value || Date.now().toString();
+    const companyName = document.getElementById('item-company').value;
+    const amount = parseInt(document.getElementById('item-amount').value) || 0;
+    const unit = document.getElementById('item-unit').value;
+    const expiryDate = document.getElementById('item-expiry').value;
+    const categoryName = document.getElementById('item-category').value;
+    const rightsMonth = document.getElementById('item-rights').value;
+    const url = document.getElementById('item-url').value;
+    const memo = document.getElementById('item-memo').value;
+
+    const existingIdx = items.findIndex(i => i.id === id);
+    
+    let remainingAmount = amount;
+    if (existingIdx >= 0) {
+        const oldItem = items[existingIdx];
+        const diff = amount - oldItem.initialAmount;
+        remainingAmount = Math.max(0, oldItem.remainingAmount + diff);
+    }
+
+    const newItem = {
+        id, companyName, categoryName,
+        remainingAmount: remainingAmount,
+        initialAmount: amount,
+        unit, expiryDate, url, memo,
+        isCompleted: remainingAmount === 0,
+        rightsMonth, isFavorite: existingIdx >= 0 ? items[existingIdx].isFavorite : false
+    };
+
+    if (existingIdx >= 0) {
+        items[existingIdx] = newItem;
+    } else {
+        items.push(newItem);
+    }
+
+    saveAndRender();
+    closeModal();
+}
+
+function openCalcModal() { document.getElementById('calc-modal').classList.remove('hidden'); updateCalc(); }
+function closeCalcModal() { document.getElementById('calc-modal').classList.add('hidden'); }
+function updateCalc() {
+    const bill = parseInt(document.getElementById('calc-bill').value) || 0;
+    const use = parseInt(document.getElementById('calc-use').value) || 0;
+    const pay = Math.max(0, bill - use);
+    document.getElementById('res-bill').textContent = '¥' + bill.toLocaleString();
+    document.getElementById('res-use').textContent = '- ¥' + use.toLocaleString();
+    document.getElementById('res-pay').textContent = '¥' + pay.toLocaleString();
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+</script>
 </body>
 </html>
