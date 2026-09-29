@@ -56,6 +56,9 @@ input, select, textarea {
             <button onclick="openCalcModal()" class="bg-white/25 hover:bg-white/35 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shadow-sm" title="お会計シミュレーター">
                 <i class="fa-solid fa-calculator"></i>
             </button>
+            <button onclick="openHelpModal()" class="bg-white/25 hover:bg-white/35 text-white w-7 h-7 rounded-full text-xs font-medium transition active:scale-95 flex items-center justify-center shadow-sm" title="使い方ガイド">
+                <i class="fa-solid fa-question"></i>
+            </button>
             <button onclick="openModal()" class="bg-white/25 hover:bg-white/35 text-white px-2.5 py-1 rounded-full text-xs font-medium transition active:scale-95 flex items-center space-x-1 shadow-sm">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>追加</span>
@@ -90,7 +93,7 @@ input, select, textarea {
                 oninput="renderList()">
         </div>
         
-        <!-- カテゴリタブ（data属性にカラー情報を保持） -->
+        <!-- カテゴリタブ -->
         <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1">
             <button onclick="setCategory('すべて')" id="cat-すべて" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition" data-color="indigo" data-bg="bg-indigo-600" data-from="from-indigo-500" data-to="to-indigo-700">すべて</button>
             <button onclick="setCategory('食事')" id="cat-食事" class="cat-btn px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition" data-color="orange" data-bg="bg-orange-500" data-from="from-orange-500" data-to="to-orange-600">食事</button>
@@ -177,7 +180,6 @@ input, select, textarea {
                 <textarea id="item-memo" rows="2" placeholder="利用条件など" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
             </div>
             
-            <!-- 編集時のみ表示される削除ボタン -->
             <div id="delete-btn-container" class="hidden pt-2">
                 <button type="button" onclick="deleteCurrentItem()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2.5 rounded-xl text-xs transition border border-red-200 flex items-center justify-center space-x-1.5">
                     <i class="fa-solid fa-trash-can"></i>
@@ -212,6 +214,39 @@ input, select, textarea {
     </div>
 </div>
 
+<!-- 使い方ガイド（ヘルプ）モーダル -->
+<div id="help-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl max-h-[85vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100 shrink-0">
+            <h3 class="font-bold text-lg text-gray-800 flex items-center"><i class="fa-solid fa-circle-question text-indigo-600 mr-2"></i>使い方ガイド</h3>
+            <button onclick="closeHelpModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <div class="space-y-4 overflow-y-auto flex-1 pr-1 text-sm text-gray-600">
+            <div>
+                <h4 class="font-bold text-gray-800 text-xs uppercase tracking-wider mb-2 text-indigo-600">📌 基本的な使い方</h4>
+                <ul class="space-y-2 text-xs leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <li><strong class="text-gray-800">1. 優待の追加:</strong> 右上の「＋追加」ボタンから銘柄名、金額・枚数、有効期限、カテゴリなどを登録します。</li>
+                    <li><strong class="text-gray-800">2. 優待の消化:</strong> リストにある「-500円」や「-1枚」ボタンをタップすると残高が減り、0になると自動で使い切り履歴へ移動します。</li>
+                    <li><strong class="text-gray-800">3. カテゴリ切り替え:</strong> 上部のタブ（すべて・食事・買い物など）を選ぶと、画面全体のカラーと専用の総額が連動して切り替わります。</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-gray-800 text-xs uppercase tracking-wider mb-2 text-indigo-600">✨ 便利な機能</h4>
+                <ul class="space-y-2 text-xs leading-relaxed bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <li><strong class="text-gray-800">⭐ お気に入り:</strong> 左側の星マークを押すと、優先的に上部に表示させることができます。</li>
+                    <li><strong class="text-gray-800">⏳ 期限アラート:</strong> 残り日数に応じてバッジの色が変化し、期限切れや期限間近を通知します（30日以内など）。</li>
+                    <li><strong class="text-gray-800">🧮 お会計シミュレーター:</strong> 電卓アイコンから、合計金額と優待充当額を入力して自払額を計算できます。</li>
+                    <li><strong class="text-gray-800">📋 使い切り履歴:</strong> 画面下の「使い切り履歴」から過去に使い切った優待の確認や、未完了への復元ができます。</li>
+                    <li><strong class="text-gray-800">☁️ クラウド自動同期:</strong> Firebaseにより、iPhoneやiPad間でデータがリアルタイムに同期されます。</li>
+                </ul>
+            </div>
+        </div>
+        <div class="pt-4 border-t border-gray-100 mt-3 shrink-0 flex justify-end">
+            <button onclick="closeHelpModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
+        </div>
+    </div>
+</div>
+
 <!-- データ管理・設定モーダル -->
 <div id="settings-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5">
@@ -222,7 +257,7 @@ input, select, textarea {
         <div class="space-y-4 text-sm text-gray-600">
             <div id="settings-notice" class="bg-indigo-50 p-3.5 rounded-xl text-indigo-900 space-y-1 transition-colors duration-300">
                 <p class="font-bold text-xs"><i class="fa-solid fa-circle-info mr-1"></i> クラウド同期について</p>
-                <p class="text-xs leading-relaxed">Firebaseを通じて、iPhoneとiPadでデータが自動で同期されます。</p>
+                <p class="text-xs leading-relaxed">Firebaseを通じて、iPhone和iPadでデータが自動で同期されます。</p>
             </div>
             <div>
                 <button onclick="exportData()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition flex items-center justify-center space-x-2 text-xs">
@@ -337,7 +372,6 @@ function saveAndRender() {
 function setCategory(cat) {
     currentCategory = cat;
     
-    // タブの選択状態を更新
     document.querySelectorAll('.cat-btn').forEach(btn => {
         const bgClass = btn.getAttribute('data-bg');
         btn.classList.remove(bgClass, 'text-white', 'font-bold', 'shadow-sm');
@@ -350,24 +384,19 @@ function setCategory(cat) {
         activeBtn.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-200', 'font-semibold', 'hover:bg-gray-50');
         activeBtn.classList.add(bgClass, 'text-white', 'font-bold', 'shadow-sm');
 
-        // テーマカラーに応じたグラデーション・ヘッダー・カード色の変更
         const fromGrad = activeBtn.getAttribute('data-from');
         const toGrad = activeBtn.getAttribute('data-to');
         const colorName = activeBtn.getAttribute('data-color');
 
-        // ヘッダー背景色の連動
         const headerEl = document.getElementById('app-header');
         headerEl.className = `sticky top-0 z-40 shadow-md text-white transition-colors duration-300 bg-${colorName}-600`;
 
-        // サマリーカードのグラデーション連動
         const summaryCard = document.getElementById('summary-card');
         summaryCard.className = `ios-card p-5 bg-gradient-to-br ${fromGrad} ${toGrad} text-white shadow-lg transition-all duration-300`;
 
-        // 設定モーダルのアクセント背景連動
         const settingsNotice = document.getElementById('settings-notice');
         settingsNotice.className = `p-3.5 rounded-xl space-y-1 transition-colors duration-300 bg-${colorName}-50 text-${colorName}-900`;
 
-        // 検索窓フォーカスリング等の調整用クラス反映（必要に応じて拡張可能）
         const searchInput = document.getElementById('search-input');
         searchInput.className = `w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-${colorName}-500 shadow-sm transition-colors`;
     }
@@ -439,7 +468,6 @@ function renderList() {
         emptyState.classList.add('hidden');
     }
 
-    // 現在のテーマカラーに対応するボタンの色クラスを決定
     const activeBtnEl = document.getElementById('cat-' + currentCategory);
     const colorKey = activeBtnEl ? activeBtnEl.getAttribute('data-color') : 'indigo';
 
@@ -599,6 +627,9 @@ function restoreItem(id) {
     saveAndRender();
     openHistoryModal();
 }
+
+function openHelpModal() { document.getElementById('help-modal').classList.remove('hidden'); }
+function closeHelpModal() { document.getElementById('help-modal').classList.add('hidden'); }
 
 function openSettingsModal() { document.getElementById('settings-modal').classList.remove('hidden'); }
 function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
