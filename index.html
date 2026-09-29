@@ -92,13 +92,7 @@ input, select, textarea {
         
         <!-- カテゴリ＆期限フィルター切り替えタブ -->
         <div class="flex space-x-2 overflow-x-auto no-scrollbar py-1" id="filter-tabs-container">
-            <button onclick="setFilter('cat', 'すべて')" id="filter-すべて" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition">すべて</button>
-            <button onclick="setFilter('cat', '食事')" id="filter-食事" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">食事</button>
-            <button onclick="setFilter('cat', '買い物')" id="filter-買い物" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">買い物</button>
-            <button onclick="setFilter('cat', 'サービス')" id="filter-サービス" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">サービス</button>
-            <button onclick="setFilter('cat', 'その他')" id="filter-その他" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-gray-600 border border-gray-200 shadow-sm transition">その他</button>
-            <span class="text-gray-300 self-center">|</span>
-            <button onclick="setFilter('expiry', 'near')" id="filter-near" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap bg-white text-orange-600 border border-orange-200 shadow-sm transition"><i class="fa-solid fa-triangle-exclamation mr-1"></i>30日以内</button>
+            <!-- 動的生成 -->
         </div>
     </section>
 
@@ -115,7 +109,7 @@ input, select, textarea {
             </select>
         </div>
         <div id="benefit-list" class="space-y-2.5">
-            <!-- JavaScriptで動的生成 -->
+            <!-- JavaScriptで動적生成 -->
         </div>
         <!-- 空状態 -->
         <div id="empty-state" class="hidden text-center py-12 px-4 ios-card">
@@ -176,8 +170,7 @@ input, select, textarea {
             </div>
             <div>
                 <label for="item-barcode-img" class="block text-xs font-semibold text-gray-600 uppercase mb-1">バーコード・QR画像URL (任意)</label>
-                <input type="url" id="item-barcode-img" placeholder="https://example.com/barcode.png または画像リンク" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <p class="text-[11px] text-gray-400 mt-1">※画像長押し等でコピーした画像のURLを貼り付けると、一覧からワンタップでバーコードを表示できます。</p>
+                <input type="url" id="item-barcode-img" placeholder="https://example.com/barcode.png" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
                 <label for="item-memo" class="block text-xs font-semibold text-gray-600 uppercase mb-1">メモ</label>
@@ -222,12 +215,8 @@ input, select, textarea {
             <h3 class="font-bold text-lg text-gray-800">使い切り履歴</h3>
             <button onclick="closeHistoryModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
-        <div id="history-list" class="space-y-2.5 overflow-y-auto flex-1 pr-1">
-            <!-- 履歴アイテム -->
-        </div>
-        <div id="history-empty" class="hidden text-center py-10 text-gray-400 text-sm">
-            使い切った履歴はまだありません
-        </div>
+        <div id="history-list" class="space-y-2.5 overflow-y-auto flex-1 pr-1"></div>
+        <div id="history-empty" class="hidden text-center py-10 text-gray-400 text-sm">使い切った履歴はまだありません</div>
         <div class="pt-4 border-t border-gray-100 mt-3 shrink-0 flex justify-end">
             <button onclick="closeHistoryModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
         </div>
@@ -307,8 +296,32 @@ const db = firebase.firestore();
 const docRef = db.collection("yutaiWallet").doc("sharedData");
 
 let items = [];
-let currentFilterType = 'cat'; // 'cat' または 'expiry'
+let currentFilterType = 'cat';
 let currentFilterValue = 'すべて';
+
+// カテゴリごとのカラー定義（アイコン背景、バッジ、ボーダー等のスタイリング用）
+const categoryStyles = {
+    '食事': {
+        bgIcon: 'bg-orange-100 text-orange-600',
+        badgeCat: 'bg-orange-50 text-orange-700 border-orange-200',
+        borderAccent: 'border-l-4 border-l-orange-500'
+    },
+    '買い物': {
+        bgIcon: 'bg-emerald-100 text-emerald-600',
+        badgeCat: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        borderAccent: 'border-l-4 border-l-emerald-500'
+    },
+    'サービス': {
+        bgIcon: 'bg-sky-100 text-sky-600',
+        badgeCat: 'bg-sky-50 text-sky-700 border-sky-200',
+        borderAccent: 'border-l-4 border-l-sky-500'
+    },
+    'その他': {
+        bgIcon: 'bg-purple-100 text-purple-600',
+        badgeCat: 'bg-purple-50 text-purple-700 border-purple-200',
+        borderAccent: 'border-l-4 border-l-purple-500'
+    }
+};
 
 docRef.onSnapshot((doc) => {
     const statusEl = document.getElementById('sync-status');
@@ -365,7 +378,7 @@ function setFilter(type, val) {
     currentFilterValue = val;
     
     document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('bg-indigo-600', 'text-white', 'bg-orange-500');
+        btn.classList.remove('bg-indigo-600', 'text-white', 'bg-orange-500', 'bg-emerald-600', 'bg-sky-600', 'bg-purple-600');
         if (btn.id.includes('near')) {
             btn.classList.add('bg-white', 'text-orange-600', 'border', 'border-orange-200');
         } else {
@@ -378,6 +391,14 @@ function setFilter(type, val) {
         activeBtn.classList.remove('bg-white', 'text-gray-600', 'text-orange-600', 'border', 'border-gray-200', 'border-orange-200');
         if (val === 'near') {
             activeBtn.classList.add('bg-orange-500', 'text-white');
+        } else if (val === '食事') {
+            activeBtn.classList.add('bg-orange-600', 'text-white');
+        } else if (val === '買い物') {
+            activeBtn.classList.add('bg-emerald-600', 'text-white');
+        } else if (val === 'サービス') {
+            activeBtn.classList.add('bg-sky-600', 'text-white');
+        } else if (val === 'その他') {
+            activeBtn.classList.add('bg-purple-600', 'text-white');
         } else {
             activeBtn.classList.add('bg-indigo-600', 'text-white');
         }
@@ -385,22 +406,19 @@ function setFilter(type, val) {
     renderList();
 }
 
-// 登録されている優待の有効期限から、動的に月別フィルタータブを生成する
 function updateDynamicFilterTabs() {
     const container = document.getElementById('filter-tabs-container');
     
-    // 固定ボタン部分（すべて、各カテゴリ、30日以内）を保持
     const defaultButtonsHTML = `
         <button onclick="setFilter('cat', 'すべて')" id="filter-すべて" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='すべて'?'bg-indigo-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">すべて</button>
-        <button onclick="setFilter('cat', '食事')" id="filter-食事" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='食事'?'bg-indigo-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">食事</button>
-        <button onclick="setFilter('cat', '買い物')" id="filter-買い物" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='買い物'?'bg-indigo-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">買い物</button>
-        <button onclick="setFilter('cat', 'サービス')" id="filter-서비스" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='サービス'?'bg-indigo-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">サービス</button>
-        <button onclick="setFilter('cat', 'その他')" id="filter-その他" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='その他'?'bg-indigo-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">その他</button>
+        <button onclick="setFilter('cat', '食事')" id="filter-食事" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='食事'?'bg-orange-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">食事</button>
+        <button onclick="setFilter('cat', '買い物')" id="filter-買い物" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='買い物'?'bg-emerald-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">買い物</button>
+        <button onclick="setFilter('cat', 'サービス')" id="filter-サービス" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='サービス'?'bg-sky-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">サービス</button>
+        <button onclick="setFilter('cat', 'その他')" id="filter-その他" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='cat'&&currentFilterValue==='その他'?'bg-purple-600 text-white':'bg-white text-gray-600 border border-gray-200'} shadow-sm transition">その他</button>
         <span class="text-gray-300 self-center">|</span>
         <button onclick="setFilter('expiry', 'near')" id="filter-near" class="filter-btn px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${currentFilterType==='expiry'&&currentFilterValue==='near'?'bg-orange-500 text-white':'bg-white text-orange-600 border border-orange-200'} shadow-sm transition"><i class="fa-solid fa-triangle-exclamation mr-1"></i>30日以内</button>
     `;
     
-    // 未完了の優待から存在する年月を抽出してソート
     const activeItems = items.filter(i => !i.isCompleted && i.expiryDate);
     const yearMonths = [...new Set(activeItems.map(i => i.expiryDate.substring(0, 7)))].sort();
     
@@ -437,7 +455,6 @@ function renderList() {
     let filtered = items.filter(item => {
         if (item.isCompleted) return false;
         
-        // フィルター判定
         if (currentFilterType === 'cat' && currentFilterValue !== 'すべて') {
             if (item.categoryName !== currentFilterValue) return false;
         } else if (currentFilterType === 'expiry' && currentFilterValue === 'near') {
@@ -525,17 +542,23 @@ function renderList() {
         else if (item.categoryName === 'サービス') iconName = 'concierge-bell';
         else if (item.categoryName === 'その他') iconName = 'gift';
 
+        // カテゴリごとのカラー適用
+        const style = categoryStyles[item.categoryName] || categoryStyles['その他'];
+
         const html = `
-            <div class="ios-card p-3.5 border border-gray-100 flex items-center justify-between space-x-2">
+            <div class="ios-card p-3.5 border border-gray-100 ${style.borderAccent} flex items-center justify-between space-x-2">
                 <div class="flex items-center space-x-2.5 min-w-0 flex-1">
                     <button onclick="toggleFavorite('${item.id}')" class="text-base focus:outline-none shrink-0">
                         <i class="fa-solid fa-star ${item.isFavorite ? 'text-yellow-400' : 'text-gray-300'}"></i>
                     </button>
-                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0 text-xs">
+                    <div class="w-8 h-8 rounded-full ${style.bgIcon} flex items-center justify-center shrink-0 text-xs">
                         <i class="fa-solid fa-${iconName}"></i>
                     </div>
                     <div class="min-w-0 flex-1 pr-1">
-                        <h4 class="font-bold text-gray-900 text-sm truncate">${escapeHtml(item.companyName)}</h4>
+                        <div class="flex items-center space-x-1.5">
+                            <h4 class="font-bold text-gray-900 text-sm truncate">${escapeHtml(item.companyName)}</h4>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${style.badgeCat} shrink-0">${escapeHtml(item.categoryName)}</span>
+                        </div>
                         <div class="flex items-center space-x-1.5 mt-0.5 text-[11px] text-gray-500 font-medium">
                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${badgeClass}">${badgeText}</span>
                             <span class="truncate">${item.expiryDate}</span>
@@ -652,7 +675,7 @@ function openHistoryModal() {
                     </div>
                     <div class="flex items-center space-x-1.5 shrink-0">
                         <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap">使い切り</span>
-                        <button onclick="restoreItem('${item.id}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap" title="未完了に戻す">戻す</button>
+                        <button onclick="restoreItem('${item.id}')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 text-xs px-2 py-1.5 rounded-lg shadow-sm whitespace-nowrap">戻す</button>
                     </div>
                 </div>
             `;
