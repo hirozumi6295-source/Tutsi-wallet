@@ -279,6 +279,15 @@ input, select, textarea {
                     <span>バックアップファイル保存 (JSON)</span>
                 </button>
             </div>
+
+            <!-- バックアップファイルから復元するボタンを追加 -->
+            <div>
+                <label class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold py-3 rounded-xl transition flex items-center justify-center space-x-2 text-xs cursor-pointer border border-indigo-200">
+                    <i class="fa-solid fa-upload"></i>
+                    <span>バックアップから復元 (JSON読込)</span>
+                    <input type="file" accept=".json" onchange="importData(event)" class="hidden">
+                </label>
+            </div>
         </div>
         <div class="pt-2 flex justify-end">
             <button onclick="closeSettingsModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
@@ -704,6 +713,33 @@ function exportData() {
     }
 }
 
+// バックアップファイル（JSON）を読み込んでデータを復元する関数
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedItems = JSON.parse(e.target.result);
+            if (!Array.isArray(importedItems)) {
+                throw new Error('ファイルの形式が正しくありません。');
+            }
+
+            if (confirm(`バックアップから ${importedItems.length} 件のデータを読み込みます。現在のデータに上書きされますがよろしいですか？`)) {
+                items = importedItems;
+                saveAndRender();
+                closeSettingsModal();
+                alert('データの復元が完了しました！');
+            }
+        } catch (err) {
+            alert('ファイルの読み込みに失敗しました: ' + err.message);
+        }
+        event.target.value = '';
+    };
+    reader.readAsText(file);
+}
+
 function saveBenefit(e) {
     e.preventDefault();
     const id = document.getElementById('item-id').value || Date.now().toString();
@@ -751,8 +787,7 @@ function updateCalc() {
     const use = parseInt(document.getElementById('calc-use').value) || 0;
     const pay = Math.max(0, bill - use);
     document.getElementById('res-bill').textContent = '¥' + bill.toLocaleString();
-    const useEl = document.getElementById('res-use');
-    if (useEl) useEl.textContent = '- ¥' + use.toLocaleString();
+    document.getElementById('res-use').textContent = '- ¥' + use.toLocaleString();
     document.getElementById('res-pay').textContent = '¥' + pay.toLocaleString();
 }
 
