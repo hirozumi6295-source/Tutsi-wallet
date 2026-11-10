@@ -254,6 +254,7 @@ input, select, textarea {
                     <li><strong class="text-gray-800">⏳ 期限アラート:</strong> 残り日数に応じてバッジの色が変化し、期限切れや期限間近を通知します（30日以内など）。</li>
                     <li><strong class="text-gray-800">🧮 お会計シミュレーター:</strong> 電卓アイコンから、合計金額と優待充当額を入力して自払額を計算できます。</li>
                     <li><strong class="text-gray-800">↩️ 誤タップ取り消し:</strong> 残高を消化した直後、画面下に表示される「元に戻す」ボタンで1つ前の状態に戻せます。</li>
+                    <li><strong class="text-gray-800">💾 バックアップと復元:</strong> 設定からJSON形式での保存・復元が可能です。</li>
                     <li><strong class="text-gray-800">☁️ クラウド自動同期:</strong> Firebaseにより、iPhoneやiPad間でデータがリアルタイムに同期されます。</li>
                 </ul>
             </div>
@@ -293,6 +294,15 @@ input, select, textarea {
                     <span>バックアップファイル保存 (JSON)</span>
                 </button>
             </div>
+
+            <!-- バックアップファイルから復元するボタン -->
+            <div>
+                <label class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold py-3 rounded-xl transition flex items-center justify-center space-x-2 text-xs cursor-pointer border border-indigo-200">
+                    <i class="fa-solid fa-upload"></i>
+                    <span>バックアップから復元 (JSON読込)</span>
+                    <input type="file" accept=".json" onchange="importData(event)" class="hidden">
+                </label>
+            </div>
         </div>
         <div class="pt-2 flex justify-end">
             <button onclick="closeSettingsModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl text-sm transition">閉じる</button>
@@ -315,7 +325,7 @@ input, select, textarea {
                     <span class="font-bold text-indigo-600 text-sm">v1.3.0</span>
                     <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full">最新</span>
                 </div>
-                <p class="text-xs text-gray-700 leading-relaxed">誤タップ取り消し（Undo）トースト機能の追加、使い方ガイド・変更履歴モーダルをアップデートしました。</p>
+                <p class="text-xs text-gray-700 leading-relaxed">誤タップ取り消し（Undo）機能、およびバックアップファイル復元（JSON読込）機能を統合しました。</p>
             </div>
             <div class="border-l-2 border-gray-300 pl-3 space-y-1">
                 <span class="font-bold text-gray-800 text-sm">v1.2.0</span>
@@ -755,6 +765,33 @@ function exportData() {
     } catch (err) {
         alert('エクスポートに失敗しました: ' + err.message);
     }
+}
+
+// バックアップファイル（JSON）を読み込んでデータを復元する関数
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedItems = JSON.parse(e.target.result);
+            if (!Array.isArray(importedItems)) {
+                throw new Error('ファイルの形式が正しくありません。');
+            }
+
+            if (confirm(`バックアップから ${importedItems.length} 件のデータを読み込みます。現在のデータに上書きされますがよろしいですか？`)) {
+                items = importedItems;
+                saveAndRender();
+                closeSettingsModal();
+                alert('データの復元が完了しました！');
+            }
+        } catch (err) {
+            alert('ファイルの読み込みに失敗しました: ' + err.message);
+        }
+        event.target.value = '';
+    };
+    reader.readAsText(file);
 }
 
 function saveBenefit(e) {
